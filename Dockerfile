@@ -1,5 +1,5 @@
 # Build stage
-FROM eclipse-temurin:17-jdk-focal AS build
+FROM eclipse-temurin:21-jdk-focal AS build
 WORKDIR /workspace/app
 
 # Copy gradle wrapper and build files first for cache
@@ -17,7 +17,7 @@ RUN chmod +x gradlew
 RUN ./gradlew clean bootJar --no-daemon -x test || ./gradlew clean assemble --no-daemon -x test
 
 # Run stage
-FROM eclipse-temurin:17-jre-focal
+FROM eclipse-temurin:21-jre-focal
 WORKDIR /app
 
 # Copy entrypoint script (will be added) and make executable
