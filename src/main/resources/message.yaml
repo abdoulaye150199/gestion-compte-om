@@ -1,0 +1,23 @@
+# message.yaml
+
+# ✅ Messages de succès
+success:
+  account_created: "Le compte a été créé avec succès."
+  transaction_validated: "La transaction a été validée avec succès."
+
+# ⚠️ Messages d'erreur
+error:
+  account_not_found: "Le compte demandé n'existe pas."
+  transaction_not_found: "La transaction spécifiée est introuvable."
+  invalid_amount: "Le montant saisi est invalide."
+  insufficient_balance: "Solde insuffisant pour effectuer cette opération."
+  unauthorized_access: "Vous n'êtes pas autorisé à accéder à cette ressource."
+  bad_request: "La requête est invalide ou incomplète."
+  server_error: "Une erreur interne est survenue. Veuillez réessayer plus tard."
+
+# ⚙️ Validation des champs
+validation:
+  titulaire_required: "Le titulaire du compte est obligatoire."
+  numeroCompte_required: "Le numéro de compte est obligatoire."
+  montant_positive: "Le montant doit être supérieur à zéro."
+  devise_required: "La devise est obligatoire."

@@ -1,0 +1,42 @@
+project:
+  name: GestionCompteOM
+  version: 1.0.0
+  description: API RESTful pour la gestion des comptes et transactions OM
+  java_version: 17
+  spring_boot_version: 3.3.4
+
+dependencies:
+  - name: Spring Web
+    artifact: org.springframework.boot:spring-boot-starter-web
+    purpose: "Permet de créer des contrôleurs REST et de gérer les requêtes HTTP"
+
+  - name: Spring Data JPA
+    artifact: org.springframework.boot:spring-boot-starter-data-jpa
+    purpose: "Gère les interactions avec la base de données en utilisant JPA/Hibernate"
+
+  - name: PostgreSQL Driver
+    artifact: org.postgresql:postgresql
+    scope: runtime
+    purpose: "Connexion à la base de données PostgreSQL"
+
+  - name: Lombok
+    artifact: org.projectlombok:lombok:1.18.32
+    scope: provided
+    purpose: "Simplifie les entités avec les annotations @Data, @Getter, etc."
+
+  - name: Validation
+    artifact: org.springframework.boot:spring-boot-starter-validation
+    purpose: "Validation des champs avec @NotNull, @Size, etc."
+
+  - name: Swagger OpenAPI
+    artifact: org.springdoc:springdoc-openapi-starter-webmvc-ui:2.6.0
+    purpose: "Documentation interactive via Swagger UI"
+
+  - name: Spring HATEOAS
+    artifact: org.springframework.boot:spring-boot-starter-hateoas
+    purpose: "Permet d’ajouter des liens hypermédia (niveau 3 REST)"
+
+  - name: Spring Boot Test
+    artifact: org.springframework.boot:spring-boot-starter-test
+    scope: test
+    purpose: "Framework de test intégré (JUnit, MockMvc)"
