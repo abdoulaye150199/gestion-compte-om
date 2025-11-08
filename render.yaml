@@ -6,15 +6,10 @@ services:
     plan: starter
     envVars:
       - key: SPRING_DATASOURCE_URL
-        sync: false
+        value: jdbc:postgresql://ballast.proxy.rlwy.net:29955/railway
       - key: SPRING_DATASOURCE_USERNAME
-        sync: false
+        value: postgres
       - key: SPRING_DATASOURCE_PASSWORD
-        sync: false
+        value: HXzcpVHHSOuCxCmsxKfmkbFbbjaFFcPI
 
-databases:
-  - name: gestion-compte-om-db
-    engine: postgres
-    version: 14
-    plan: starter
-
+# Pas besoin de créer une base Render ici, donc on supprime la section "databases"

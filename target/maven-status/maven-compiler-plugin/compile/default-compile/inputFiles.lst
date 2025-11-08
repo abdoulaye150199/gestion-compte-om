@@ -1,1 +1,4 @@
 /home/abdoulaye/Musique/Java/Gesion-CompteOM/src/main/java/com/example/gesioncompteom/GesionCompteOmApplication.java
+/home/abdoulaye/Musique/Java/Gesion-CompteOM/src/main/java/com/example/gesioncompteom/config/SwaggerViewConfig.java
+/home/abdoulaye/Musique/Java/Gesion-CompteOM/src/main/java/com/example/gesioncompteom/controller/HomeController.java
+/home/abdoulaye/Musique/Java/Gesion-CompteOM/src/main/java/com/example/gesioncompteom/controller/SwaggerRedirectController.java
