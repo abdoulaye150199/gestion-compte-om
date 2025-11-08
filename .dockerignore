@@ -1,0 +1,22 @@
+# Java
+build/
+.gradle/
+**/build/
+**/out/
+
+# IDE
+.idea/
+*.iml
+
+# Git
+.git
+
+# Logs
+*.log
+
+# OS
+.DS_Store
+
+# Maven/Gradle caches
+.gradle
+

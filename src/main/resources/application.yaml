@@ -6,9 +6,9 @@ spring:
     name: GestionCompteOM
 
   datasource:
-    url: jdbc:postgresql://ballast.proxy.rlwy.net:29955/railway
-    username: postgres
-    password: HXzcpVHHSOuCxCmsxKfmkbFbbjaFFcPI
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/railway}
+    username: ${SPRING_DATASOURCE_USERNAME:postgres}
+    password: ${SPRING_DATASOURCE_PASSWORD:}
     driver-class-name: org.postgresql.Driver
 
   jpa:

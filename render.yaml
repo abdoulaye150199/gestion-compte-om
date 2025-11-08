@@ -1,0 +1,20 @@
+services:
+  - type: web
+    name: gestion-compte-om
+    env: docker
+    dockerfilePath: Dockerfile
+    plan: starter
+    envVars:
+      - key: SPRING_DATASOURCE_URL
+        sync: false
+      - key: SPRING_DATASOURCE_USERNAME
+        sync: false
+      - key: SPRING_DATASOURCE_PASSWORD
+        sync: false
+
+databases:
+  - name: gestion-compte-om-db
+    engine: postgres
+    version: 14
+    plan: starter
+
