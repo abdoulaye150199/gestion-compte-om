@@ -1,20 +1,19 @@
 package com.example.gesioncompteom.controller;
 
-import com.example.gesioncompteom.assembler.CompteModelAssembler;
-import com.example.gesioncompteom.model.Compte;
+import com.example.gesioncompteom.model.Transaction;
 import com.example.gesioncompteom.service.CompteService;
-import org.springframework.hateoas.CollectionModel;
-import org.springframework.hateoas.EntityModel;
+import com.example.gesioncompteom.util.QrUtil;
+import com.example.gesioncompteom.model.Compte;
+import com.example.gesioncompteom.assembler.CompteModelAssembler;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.io.IOException;
 import java.math.BigDecimal;
 import java.net.URI;
+import java.util.Map;
 import java.util.List;
 import java.util.stream.Collectors;
-
-import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
-import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 
 @RestController
 @RequestMapping("/api/comptes")
@@ -28,37 +27,50 @@ public class CompteController {
         this.assembler = assembler;
     }
 
-    @PostMapping
-    public ResponseEntity<?> create(@RequestBody Compte c) {
-        Compte saved = service.create(c);
-        EntityModel<Compte> model = assembler.toModel(saved);
-        return ResponseEntity.created(URI.create(model.getRequiredLink("self").getHref())).body(model);
+    @GetMapping("/{numero}/solde")
+    public ResponseEntity<?> getSolde(@PathVariable("numero") String numero) {
+        BigDecimal solde = service.getSoldeByNumero(numero);
+        return ResponseEntity.ok(Map.of("numeroCompte", numero, "solde", solde));
     }
 
-    @GetMapping("/{id}")
-    public EntityModel<Compte> get(@PathVariable String id) {
-        Compte c = service.getById(id);
-        return assembler.toModel(c);
+    
+
+    record AmountRequest(String utilisateurId, BigDecimal amount) {}
+
+    @PostMapping("/{numero}/depot")
+    public ResponseEntity<?> depot(@PathVariable("numero") String numero, @RequestBody AmountRequest r) {
+        Transaction t = service.depositByNumero(numero, r.amount(), r.utilisateurId());
+        return ResponseEntity.ok(Map.of("transactionId", t.getId()));
     }
 
-    @GetMapping
-    public CollectionModel<EntityModel<Compte>> list() {
-        List<EntityModel<Compte>> comptes = service.listAll().stream().map(c -> assembler.toModel(c)).collect(Collectors.toList());
-        return CollectionModel.of(comptes, linkTo(methodOn(CompteController.class).list()).withSelfRel());
+    @PostMapping("/{numero}/retrait")
+    public ResponseEntity<?> retrait(@PathVariable("numero") String numero, @RequestBody AmountRequest r) {
+        Transaction t = service.withdrawByNumero(numero, r.amount(), r.utilisateurId());
+        return ResponseEntity.ok(Map.of("transactionId", t.getId()));
     }
 
-    @PostMapping("/{id}/credit")
-    public EntityModel<Compte> credit(@PathVariable String id, @RequestBody(required = false) BigDecimal amount) {
-        BigDecimal amt = amount == null ? BigDecimal.ZERO : amount;
-        Compte c = service.credit(id, amt);
-        return assembler.toModel(c);
+    record TransferRequest(String utilisateurId, String toNumero, BigDecimal amount) {}
+
+    @PostMapping("/{numero}/transfert")
+    public ResponseEntity<?> transfert(@PathVariable("numero") String numero, @RequestBody TransferRequest r) {
+        Transaction t = service.transferByNumero(numero, r.toNumero(), r.amount(), r.utilisateurId());
+        return ResponseEntity.ok(Map.of("transactionId", t.getId()));
     }
 
-    @PostMapping("/{id}/debit")
-    public EntityModel<Compte> debit(@PathVariable String id, @RequestBody(required = false) BigDecimal amount) {
-        BigDecimal amt = amount == null ? BigDecimal.ZERO : amount;
-        Compte c = service.debit(id, amt);
-        return assembler.toModel(c);
+    record PayRequest(String utilisateurId, String merchantNumero, BigDecimal amount) {}
+
+    @PostMapping("/{numero}/payer")
+    public ResponseEntity<?> payer(@PathVariable("numero") String numero, @RequestBody PayRequest r) {
+        Transaction t = service.transferByNumero(numero, r.merchantNumero(), r.amount(), r.utilisateurId());
+        return ResponseEntity.ok(Map.of("transactionId", t.getId()));
+    }
+
+    
+
+    @GetMapping("/{numero}/qr")
+    public ResponseEntity<?> qr(@PathVariable("numero") String numero) throws Exception {
+        // QR contains the account identifier (numeroCompte)
+        String dataUrl = QrUtil.toDataUrlPng(numero, 300);
+        return ResponseEntity.ok(Map.of("qrDataUrl", dataUrl));
     }
 }
-

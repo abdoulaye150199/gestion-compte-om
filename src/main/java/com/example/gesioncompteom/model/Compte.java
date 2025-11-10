@@ -4,7 +4,7 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 import java.util.UUID;
 
 @Entity
@@ -19,25 +19,35 @@ public class Compte {
     @Column(length = 36)
     private String id;
 
-    @Column(unique = true, nullable = false)
+    @Column(name = "date_creation")
+    private OffsetDateTime dateCreation;
+
+    @Column(name = "derniere_modification")
+    private OffsetDateTime derniereModification;
+
+    @Version
+    private Long version;
+
+    @Column(name = "numero_compte", nullable = false, unique = true)
     private String numeroCompte;
+
+    @Column(nullable = false, precision = 38, scale = 2)
+    private BigDecimal solde;
+
+    @Column(nullable = false)
+    private String statut;
 
     @Column(nullable = false)
     private String titulaire;
 
-    @Column(nullable = false)
-    private BigDecimal solde;
-
-    private LocalDateTime dateCreation;
-
-    private String statut;
-
     @PrePersist
     public void prePersist() {
         if (id == null) id = UUID.randomUUID().toString();
-        if (dateCreation == null) dateCreation = LocalDateTime.now();
-        if (solde == null) solde = BigDecimal.ZERO;
-        if (statut == null) statut = "ACTIVE";
+        if (dateCreation == null) dateCreation = OffsetDateTime.now();
+    }
+
+    @PreUpdate
+    public void preUpdate() {
+        derniereModification = OffsetDateTime.now();
     }
 }
-

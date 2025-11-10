@@ -4,7 +4,7 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 import java.util.UUID;
 
 @Entity
@@ -19,26 +19,33 @@ public class Transaction {
     @Column(length = 36)
     private String id;
 
-    @Column(nullable = false)
-    private String compteDebiteurId;
+    @Column(name = "utilisateur_id", nullable = false)
+    private String utilisateurId;
 
-    @Column(nullable = false)
-    private String compteCrediteurId;
+    @Column(name = "compte_id")
+    private String compteId;
 
-    @Column(nullable = false)
+    @Column(nullable = false, precision = 38, scale = 2)
     private BigDecimal montant;
 
-    private String motif;
+    @Column(name = "date_transaction")
+    private OffsetDateTime dateTransaction;
 
-    private LocalDateTime dateCreation;
+    private String description;
 
+    @Column(nullable = false)
+    private String devise;
+
+    @Column(nullable = false)
     private String statut;
+
+    @Column(nullable = false)
+    private String type;
 
     @PrePersist
     public void prePersist() {
         if (id == null) id = UUID.randomUUID().toString();
-        if (dateCreation == null) dateCreation = LocalDateTime.now();
-        if (statut == null) statut = "PENDING";
+        if (dateTransaction == null) dateTransaction = OffsetDateTime.now();
     }
 }
 

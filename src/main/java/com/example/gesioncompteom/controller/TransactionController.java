@@ -27,12 +27,7 @@ public class TransactionController {
         this.assembler = assembler;
     }
 
-    @PostMapping
-    public ResponseEntity<?> create(@RequestBody Transaction t) {
-        Transaction saved = service.create(t);
-        EntityModel<Transaction> model = assembler.toModel(saved);
-        return ResponseEntity.created(URI.create(model.getRequiredLink("self").getHref())).body(model);
-    }
+
 
     @GetMapping("/{id}")
     public EntityModel<Transaction> get(@PathVariable String id) {
