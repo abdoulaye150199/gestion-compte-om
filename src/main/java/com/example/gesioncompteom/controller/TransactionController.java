@@ -42,7 +42,9 @@ public class TransactionController {
 
     @GetMapping
     public CollectionModel<EntityModel<Transaction>> list() {
-        List<EntityModel<Transaction>> list = service.listAll().stream().map(assembler::toModel).collect(Collectors.toList());
+    List<EntityModel<Transaction>> list = service.listAll().stream()
+        .map(t -> assembler.toModel(t))
+        .collect(Collectors.toList());
         return CollectionModel.of(list, linkTo(methodOn(TransactionController.class).list()).withSelfRel());
     }
 }

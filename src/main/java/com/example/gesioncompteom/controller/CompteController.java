@@ -43,7 +43,7 @@ public class CompteController {
 
     @GetMapping
     public CollectionModel<EntityModel<Compte>> list() {
-        List<EntityModel<Compte>> comptes = service.listAll().stream().map(assembler::toModel).collect(Collectors.toList());
+        List<EntityModel<Compte>> comptes = service.listAll().stream().map(c -> assembler.toModel(c)).collect(Collectors.toList());
         return CollectionModel.of(comptes, linkTo(methodOn(CompteController.class).list()).withSelfRel());
     }
 
