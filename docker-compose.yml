@@ -1,23 +1,20 @@
 version: '3.8'
 services:
-  # The compose setup can run the app container but will connect to an external
-  # PostgreSQL (Neon) instance instead of a local DB. This file expects secrets
-  # to be provided via an environment file or host environment variables.
   app:
     build: .
     ports:
-      - "8081:8080"  # map host 8081 -> container 8080
+      - "8081:8080"
     environment:
-      # Provide full JDBC URL via NEON_DATABASE_URL or SPRING_DATASOURCE_URL env var
-      SPRING_DATASOURCE_URL: ${NEON_DATABASE_URL}
-      SPRING_DATASOURCE_USERNAME: ${NEON_DATABASE_USERNAME}
-      SPRING_DATASOURCE_PASSWORD: ${NEON_DATABASE_PASSWORD}
-      SPRING_DATASOURCE_DRIVER: org.postgresql.Driver
-      # Optional: disable Flyway in container if you prefer to run migrations externally
-      # Default is false to avoid accidental automatic schema changes on startup.
+      SPRING_DATASOURCE_URL: ${SPRING_DATASOURCE_URL}
+      SPRING_DATASOURCE_USERNAME: ${SPRING_DATASOURCE_USERNAME}
+      SPRING_DATASOURCE_PASSWORD: ${SPRING_DATASOURCE_PASSWORD}
+      SPRING_DATASOURCE_DRIVER_CLASS_NAME: org.postgresql.Driver
       SPRING_FLYWAY_ENABLED: "false"
-      # JWT secret should also be provided via environment for production
       JWT_SECRET: ${JWT_SECRET}
+      # Twilio configuration
+      TWILIO_ACCOUNT_SID: ${TWILIO_ACCOUNT_SID}
+      TWILIO_AUTH_TOKEN: ${TWILIO_AUTH_TOKEN}
+      TWILIO_FROM: ${TWILIO_FROM}
     restart: on-failure
-
-# No local DB volume in this compose — we rely on the external Neon DB.
+    env_file:
+      - .env
