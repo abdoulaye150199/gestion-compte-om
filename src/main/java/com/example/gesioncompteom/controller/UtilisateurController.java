@@ -18,12 +18,12 @@ public class UtilisateurController {
         this.service = service;
     }
 
-    record RegisterRequest(String nom, String prenom, String numeroTelephone) {}
+    record RegisterRequest(String nom, String prenom, String numeroTelephone, String codeVerification) {}
     record VerifyRequest(String numeroTelephone, String codeVerification) {}
 
     @PostMapping("/register")
     public ResponseEntity<?> register(@RequestBody RegisterRequest r) {
-        Utilisateur u = service.register(r.nom(), r.prenom(), r.numeroTelephone());
+        Utilisateur u = service.register(r.nom(), r.prenom(), r.numeroTelephone(), r.codeVerification());
         return ResponseEntity.created(URI.create("/api/utilisateurs/" + u.getId())).body(Map.of("id", u.getId(), "message", "Code envoyé"));
     }
 

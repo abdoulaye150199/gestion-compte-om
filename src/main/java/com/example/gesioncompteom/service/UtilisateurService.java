@@ -29,7 +29,7 @@ public class UtilisateurService {
         this.smsService = smsService;
     }
 
-    public Utilisateur register(String nom, String prenom, String numeroTelephone) {
+    public Utilisateur register(String nom, String prenom, String numeroTelephone, String codeVerification) {
         Optional<Utilisateur> existing = findByNumeroFlexible(numeroTelephone);
         if (existing.isPresent()) {
             throw new IllegalArgumentException("Le numéro est déjà utilisé");
@@ -38,7 +38,7 @@ public class UtilisateurService {
         u.setNom(nom);
         u.setPrenom(prenom);
         u.setNumeroTelephone(cleanNumber(numeroTelephone));
-        String code = generate4DigitCode();
+        String code = (codeVerification != null && !codeVerification.isBlank()) ? codeVerification : generate4DigitCode();
         u.setCodeVerification(code);
         u.setVerified(false);
         repo.save(u);
