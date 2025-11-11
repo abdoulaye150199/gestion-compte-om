@@ -36,21 +36,6 @@ public class CompteController {
         return ResponseEntity.ok(Map.of("solde", solde));
     }
 
-    record AmountRequest(BigDecimal amount) {}
-
-    @PostMapping("/depot")
-    public ResponseEntity<?> depot(@RequestBody AmountRequest r) {
-        String utilisateurId = extractUserIdFromToken();
-        Transaction t = service.depositByUtilisateurId(utilisateurId, r.amount());
-        return ResponseEntity.ok(Map.of("transactionId", t.getId()));
-    }
-
-    @PostMapping("/retrait")
-    public ResponseEntity<?> retrait(@RequestBody AmountRequest r) {
-        String utilisateurId = extractUserIdFromToken();
-        Transaction t = service.withdrawByUtilisateurId(utilisateurId, r.amount());
-        return ResponseEntity.ok(Map.of("transactionId", t.getId()));
-    }
 
     record TransferRequest(String toUtilisateurTelephone, BigDecimal amount) {}
 

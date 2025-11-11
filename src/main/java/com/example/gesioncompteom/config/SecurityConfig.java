@@ -36,8 +36,6 @@ public class SecurityConfig {
             .requestMatchers("/actuator/health", "/actuator/**").permitAll()
             // distributor-only endpoints
             .requestMatchers("/api/distributeurs/depot", "/api/distributeurs/retrait").hasAuthority("ROLE_DISTRIBUTEUR")
-            // existing compte deposit/retrait should be restricted (disabled for normal clients)
-            .requestMatchers("/api/comptes/depot", "/api/comptes/retrait").hasAuthority("ROLE_DISTRIBUTEUR")
             // everything else requires authentication
             .anyRequest().authenticated()
         )
