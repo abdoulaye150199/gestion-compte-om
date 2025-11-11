@@ -5,11 +5,28 @@ services:
     dockerfilePath: Dockerfile
     plan: starter
     envVars:
+      # Database configuration - set in Render dashboard
       - key: SPRING_DATASOURCE_URL
-        value: jdbc:postgresql://ballast.proxy.rlwy.net:29955/railway
+        fromEnv: SPRING_DATASOURCE_URL
       - key: SPRING_DATASOURCE_USERNAME
-        value: postgres
+        fromEnv: SPRING_DATASOURCE_USERNAME
       - key: SPRING_DATASOURCE_PASSWORD
-        value: HXzcpVHHSOuCxCmsxKfmkbFbbjaFFcPI
-
-# Pas besoin de créer une base Render ici, donc on supprime la section "databases"
+        fromEnv: SPRING_DATASOURCE_PASSWORD
+      - key: SPRING_DATASOURCE_DRIVER_CLASS_NAME
+        value: org.postgresql.Driver
+      - key: SPRING_JPA_HIBERNATE_DDL_AUTO
+        value: validate
+      - key: SPRING_JPA_SHOW_SQL
+        value: "false"
+      - key: SPRING_FLYWAY_ENABLED
+        value: "false"
+      # Application configuration - set in Render dashboard
+      - key: JWT_SECRET
+        fromEnv: JWT_SECRET
+      # Twilio configuration - set in Render dashboard
+      - key: TWILIO_ACCOUNT_SID
+        fromEnv: TWILIO_ACCOUNT_SID
+      - key: TWILIO_AUTH_TOKEN
+        fromEnv: TWILIO_AUTH_TOKEN
+      - key: TWILIO_FROM
+        fromEnv: TWILIO_FROM

@@ -2,31 +2,30 @@
 FROM maven:3.9.4-eclipse-temurin-21 AS build
 WORKDIR /workspace/app
 
-# Copy pom and sources
+# Copy Maven wrapper and pom
+COPY mvnw ./
+COPY .mvn ./.mvn
 COPY pom.xml ./
+
+# Copy source code
 COPY src ./src
 
 # Build the application
-RUN mvn -B -DskipTests package
+RUN chmod +x mvnw && ./mvnw -B -DskipTests clean package
 
+# Runtime stage
 FROM eclipse-temurin:21-jre
 WORKDIR /app
 
-# Copy entrypoint script and jar
-COPY entrypoint.sh /app/entrypoint.sh
-RUN chmod +x /app/entrypoint.sh
-COPY --from=build /workspace/app/target/*.jar /app/app.jar
+# Copy the JAR from build stage
+COPY --from=build /workspace/app/target/gestion-compte-om-1.0.0.jar /app/app.jar
 
 # Expose port
 EXPOSE 8080
 
-# Environment variables (do NOT hardcode secrets here). Set these at deploy time or in your CI.
-ENV SPRING_DATASOURCE_URL=
-ENV SPRING_DATASOURCE_USERNAME=
-ENV SPRING_DATASOURCE_PASSWORD=
-ENV TWILIO_ACCOUNT_SID=
-ENV TWILIO_AUTH_TOKEN=
-ENV TWILIO_FROM=
-ENV JWT_SECRET=
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+  CMD curl -f http://localhost:8080/actuator/health || exit 1
 
-ENTRYPOINT ["/app/entrypoint.sh"]
+# Run the application - environment variables come from Render
+ENTRYPOINT ["java", "-jar", "/app/app.jar"]
