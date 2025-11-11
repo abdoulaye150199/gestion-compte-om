@@ -6,6 +6,8 @@ import com.example.gesioncompteom.util.QrUtil;
 import com.example.gesioncompteom.model.Compte;
 import com.example.gesioncompteom.assembler.CompteModelAssembler;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.User;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
@@ -27,42 +29,56 @@ public class CompteController {
         this.assembler = assembler;
     }
 
-    @GetMapping("/{numero}/solde")
-    public ResponseEntity<?> getSolde(@PathVariable("numero") String numero) {
-        BigDecimal solde = service.getSoldeByNumero(numero);
-        return ResponseEntity.ok(Map.of("numeroCompte", numero, "solde", solde));
+    @GetMapping("/solde")
+    public ResponseEntity<?> getSolde() {
+        String utilisateurId = extractUserIdFromToken();
+        BigDecimal solde = service.getSoldeByUtilisateurId(utilisateurId);
+        return ResponseEntity.ok(Map.of("solde", solde));
     }
 
-    
+    record AmountRequest(BigDecimal amount) {}
 
-    record AmountRequest(String utilisateurId, BigDecimal amount) {}
-
-    @PostMapping("/{numero}/depot")
-    public ResponseEntity<?> depot(@PathVariable("numero") String numero, @RequestBody AmountRequest r) {
-        Transaction t = service.depositByNumero(numero, r.amount(), r.utilisateurId());
+    @PostMapping("/depot")
+    public ResponseEntity<?> depot(@RequestBody AmountRequest r) {
+        String utilisateurId = extractUserIdFromToken();
+        Transaction t = service.depositByUtilisateurId(utilisateurId, r.amount());
         return ResponseEntity.ok(Map.of("transactionId", t.getId()));
     }
 
-    @PostMapping("/{numero}/retrait")
-    public ResponseEntity<?> retrait(@PathVariable("numero") String numero, @RequestBody AmountRequest r) {
-        Transaction t = service.withdrawByNumero(numero, r.amount(), r.utilisateurId());
+    @PostMapping("/retrait")
+    public ResponseEntity<?> retrait(@RequestBody AmountRequest r) {
+        String utilisateurId = extractUserIdFromToken();
+        Transaction t = service.withdrawByUtilisateurId(utilisateurId, r.amount());
         return ResponseEntity.ok(Map.of("transactionId", t.getId()));
     }
 
-    record TransferRequest(String utilisateurId, String toNumero, BigDecimal amount) {}
+    record TransferRequest(String toUtilisateurTelephone, BigDecimal amount) {}
 
-    @PostMapping("/{numero}/transfert")
-    public ResponseEntity<?> transfert(@PathVariable("numero") String numero, @RequestBody TransferRequest r) {
-        Transaction t = service.transferByNumero(numero, r.toNumero(), r.amount(), r.utilisateurId());
+    @PostMapping("/transfert")
+    public ResponseEntity<?> transfert(@RequestBody TransferRequest r) {
+        String utilisateurId = extractUserIdFromToken();
+        Transaction t = service.transferByUtilisateurId(utilisateurId, r.toUtilisateurTelephone(), r.amount());
         return ResponseEntity.ok(Map.of("transactionId", t.getId()));
     }
 
-    record PayRequest(String utilisateurId, String merchantNumero, BigDecimal amount) {}
+    record PayRequest(String merchantTelephone, BigDecimal amount) {}
 
-    @PostMapping("/{numero}/payer")
-    public ResponseEntity<?> payer(@PathVariable("numero") String numero, @RequestBody PayRequest r) {
-        Transaction t = service.transferByNumero(numero, r.merchantNumero(), r.amount(), r.utilisateurId());
+    @PostMapping("/payer")
+    public ResponseEntity<?> payer(@RequestBody PayRequest r) {
+        String utilisateurId = extractUserIdFromToken();
+        Transaction t = service.transferByUtilisateurId(utilisateurId, r.merchantTelephone(), r.amount());
         return ResponseEntity.ok(Map.of("transactionId", t.getId()));
+    }
+
+    /**
+     * Extrait l'ID utilisateur du token JWT
+     */
+    private String extractUserIdFromToken() {
+        Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        if (principal instanceof User) {
+            return ((User) principal).getUsername();
+        }
+        throw new IllegalStateException("Utilisateur non authentifié");
     }
 
     

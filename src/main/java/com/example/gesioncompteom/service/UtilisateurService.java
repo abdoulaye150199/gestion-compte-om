@@ -54,15 +54,14 @@ public class UtilisateurService {
 
     public String verify(String numeroTelephone, String code) {
         Utilisateur u = findByNumeroFlexible(numeroTelephone).orElseThrow(() -> new NotFoundException("Utilisateur non trouvé"));
-        if (u.isVerified()) {
-            throw new IllegalStateException("Utilisateur déjà vérifié");
-        }
         if (u.getCodeVerification() == null || !u.getCodeVerification().equals(code)) {
             throw new IllegalArgumentException("Code invalide");
         }
-        u.setVerified(true);
-        u.setCodeVerification(null);
-        repo.save(u);
+        // Marquer comme vérifié si ne l'est pas déjà
+        if (!u.isVerified()) {
+            u.setVerified(true);
+            repo.save(u);
+        }
 
         String secret = System.getenv("JWT_SECRET");
         if (secret == null || secret.isBlank()) {

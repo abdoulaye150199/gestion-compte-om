@@ -14,8 +14,8 @@ public class CompteModelAssembler implements RepresentationModelAssembler<Compte
     @Override
     public EntityModel<Compte> toModel(Compte compte) {
     return EntityModel.of(compte,
-        // self-rel uses the owner-facing solde endpoint by account numero
-        linkTo(methodOn(CompteController.class).getSolde(compte.getNumeroCompte())).withSelfRel()
+        // self-rel uses the solde endpoint (now token-based, no path param needed)
+        linkTo(methodOn(CompteController.class).getSolde()).withSelfRel()
     );
     }
 }

@@ -39,6 +39,9 @@ public class Compte {
     @Column(nullable = false)
     private String titulaire;
 
+    @Column(name = "utilisateur_id")
+    private UUID utilisateurId;
+
     @PrePersist
     public void prePersist() {
         if (id == null) id = UUID.randomUUID();

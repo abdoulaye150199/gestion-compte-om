@@ -2,6 +2,7 @@ package com.example.gesioncompteom.service;
 
 import com.example.gesioncompteom.model.Compte;
 import com.example.gesioncompteom.repository.CompteRepository;
+import com.example.gesioncompteom.repository.UtilisateurRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -10,6 +11,7 @@ import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.UUID;
 import com.example.gesioncompteom.model.Transaction;
+import com.example.gesioncompteom.model.Utilisateur;
 import com.example.gesioncompteom.repository.TransactionRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -22,10 +24,12 @@ public class CompteService {
 
     private final CompteRepository repo;
     private final TransactionRepository transactionRepository;
+    private final UtilisateurRepository utilisateurRepository;
 
-    public CompteService(CompteRepository repo, TransactionRepository transactionRepository) {
+    public CompteService(CompteRepository repo, TransactionRepository transactionRepository, UtilisateurRepository utilisateurRepository) {
         this.repo = repo;
         this.transactionRepository = transactionRepository;
+        this.utilisateurRepository = utilisateurRepository;
     }
 
     public Compte create(Compte c) {
@@ -129,6 +133,86 @@ public class CompteService {
         if (c.getSolde().compareTo(amount) < 0) throw new IllegalArgumentException("insufficient_balance");
         c.setSolde(c.getSolde().subtract(amount));
         return repo.save(c);
+    }
+
+    // ===== Methods based on utilisateurId (for token-based API) =====
+
+    private Compte getByUtilisateurId(String utilisateurId) {
+        UUID uuid = UUID.fromString(utilisateurId);
+        return repo.findByUtilisateurId(uuid).orElseThrow(() -> new NoSuchElementException("Compte not found for user"));
+    }
+
+    public BigDecimal getSoldeByUtilisateurId(String utilisateurId) {
+        Compte c = getByUtilisateurId(utilisateurId);
+        return c.getSolde();
+    }
+
+    public Transaction depositByUtilisateurId(String utilisateurId, BigDecimal amount) {
+        Compte c = getByUtilisateurId(utilisateurId);
+        c.setSolde(c.getSolde().add(amount));
+        repo.save(c);
+        Transaction t = Transaction.builder()
+                .compteId(c.getId())
+                .utilisateurId(UUID.fromString(utilisateurId))
+                .montant(amount)
+                .devise("XOF")
+                .statut("VALIDEE")
+                .type("DEPOT")
+                .description("Depot via API")
+                .build();
+        return transactionRepository.save(t);
+    }
+
+    public Transaction withdrawByUtilisateurId(String utilisateurId, BigDecimal amount) {
+        Compte c = getByUtilisateurId(utilisateurId);
+        if (c.getSolde().compareTo(amount) < 0) throw new IllegalArgumentException("insufficient_balance");
+        c.setSolde(c.getSolde().subtract(amount));
+        repo.save(c);
+        Transaction t = Transaction.builder()
+                .compteId(c.getId())
+                .utilisateurId(UUID.fromString(utilisateurId))
+                .montant(amount)
+                .devise("XOF")
+                .statut("VALIDEE")
+                .type("RETRAIT")
+                .description("Retrait via API")
+                .build();
+        return transactionRepository.save(t);
+    }
+
+    @org.springframework.transaction.annotation.Transactional
+    public Transaction transferByUtilisateurId(String fromUtilisateurId, String toUtilisateurTelephone, BigDecimal amount) {
+        Compte from = getByUtilisateurId(fromUtilisateurId);
+        // Find recipient by telephone number (from Utilisateur table)
+        // For simplicity, we'll find the account linked to that user
+        // This requires looking up the user by phone, then their account
+        Compte to = getByUtilisateurPhoneNumber(toUtilisateurTelephone);
+        
+        if (from.getSolde().compareTo(amount) < 0) throw new IllegalArgumentException("insufficient_balance");
+        from.setSolde(from.getSolde().subtract(amount));
+        to.setSolde(to.getSolde().add(amount));
+        repo.save(from);
+        repo.save(to);
+
+        Transaction t = Transaction.builder()
+                .compteId(from.getId())
+                .utilisateurId(UUID.fromString(fromUtilisateurId))
+                .montant(amount)
+                .devise("XOF")
+                .statut("VALIDEE")
+                .type("TRANSFERT")
+                .description("Transfert vers " + to.getNumeroCompte())
+                .build();
+        return transactionRepository.save(t);
+    }
+
+    private Compte getByUtilisateurPhoneNumber(String phoneNumber) {
+        // Look up user by phone number
+        Utilisateur u = utilisateurRepository.findByNumeroTelephone(phoneNumber)
+                .orElseThrow(() -> new NoSuchElementException("User not found with phone: " + phoneNumber));
+        // Get account for that user
+        return repo.findByUtilisateurId(u.getId())
+                .orElseThrow(() -> new NoSuchElementException("Account not found for user"));
     }
 }
 

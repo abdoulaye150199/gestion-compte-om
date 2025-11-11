@@ -10,5 +10,6 @@ import java.util.UUID;
 @Repository
 public interface CompteRepository extends JpaRepository<Compte, UUID> {
     Optional<Compte> findByNumeroCompte(String numeroCompte);
+    Optional<Compte> findByUtilisateurId(UUID utilisateurId);
 }
 

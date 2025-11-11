@@ -59,6 +59,15 @@ ALTER TABLE transactions
 
 CREATE INDEX idx_transactions_compte_id ON transactions(compte_id);
 
+-- V7: add utilisateur_id to comptes
+ALTER TABLE comptes
+    ADD COLUMN utilisateur_id UUID;
+
+ALTER TABLE comptes
+    ADD CONSTRAINT fk_comptes_utilisateur FOREIGN KEY (utilisateur_id) REFERENCES utilisateurs(id);
+
+CREATE INDEX idx_comptes_utilisateur_id ON comptes(utilisateur_id);
+
 -- Flyway history
 CREATE TABLE flyway_schema_history (
     installed_rank INT PRIMARY KEY,
