@@ -81,12 +81,12 @@ public class CompteController {
         throw new IllegalStateException("Utilisateur non authentifié");
     }
 
-    
-
-    @GetMapping("/{numero}/qr")
-    public ResponseEntity<?> qr(@PathVariable("numero") String numero) throws Exception {
-        // QR contains the account identifier (numeroCompte)
-        String dataUrl = QrUtil.toDataUrlPng(numero, 300);
+    @GetMapping("/qr")
+    public ResponseEntity<?> qr() throws Exception {
+        String utilisateurId = extractUserIdFromToken();
+        Compte c = service.getByUtilisateurIdDirect(utilisateurId);
+        // QR contains the account numero
+        String dataUrl = QrUtil.toDataUrlPng(c.getNumeroCompte(), 300);
         return ResponseEntity.ok(Map.of("qrDataUrl", dataUrl));
     }
 }

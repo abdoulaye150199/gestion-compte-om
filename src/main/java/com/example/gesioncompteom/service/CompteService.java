@@ -142,6 +142,10 @@ public class CompteService {
         return repo.findByUtilisateurId(uuid).orElseThrow(() -> new NoSuchElementException("Compte not found for user"));
     }
 
+    public Compte getByUtilisateurIdDirect(String utilisateurId) {
+        return getByUtilisateurId(utilisateurId);
+    }
+
     public BigDecimal getSoldeByUtilisateurId(String utilisateurId) {
         Compte c = getByUtilisateurId(utilisateurId);
         return c.getSolde();
