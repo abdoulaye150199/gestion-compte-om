@@ -19,6 +19,7 @@ public class CorsConfig {
         configuration.setAllowedOrigins(Arrays.asList(
             "http://localhost:3000",
             "http://localhost:8080",
+            "http://localhost:8081",
             "https://gestion-compte-om-1.onrender.com"
         ));
         

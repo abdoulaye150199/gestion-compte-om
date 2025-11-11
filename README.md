@@ -6,3 +6,5 @@
 
 
 https://gestion-compte-om-1.onrender.com/swagger-ui/index.html
+
+pkill -f "mvn spring-boot:run"

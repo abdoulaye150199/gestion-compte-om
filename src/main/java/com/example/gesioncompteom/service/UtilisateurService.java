@@ -73,6 +73,7 @@ public class UtilisateurService {
             c.setTitulaire(u.getNom() + " " + u.getPrenom());
             c.setSolde(java.math.BigDecimal.ZERO);
             c.setStatut("ACTIF");
+            c.setNumeroCompte("ACC-" + java.util.UUID.randomUUID().toString());
             compteRepository.save(c);
         }
 

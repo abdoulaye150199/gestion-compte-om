@@ -19,7 +19,7 @@ services:
       - key: SPRING_JPA_SHOW_SQL
         value: "false"
       - key: SPRING_FLYWAY_ENABLED
-        value: "false"
+        value: "true"
       # Application configuration - set in Render dashboard
       - key: JWT_SECRET
         fromEnv: JWT_SECRET
