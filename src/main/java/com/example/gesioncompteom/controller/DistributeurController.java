@@ -6,12 +6,14 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.web.bind.annotation.*;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 
 import java.math.BigDecimal;
 import java.util.Map;
 
 @RestController
 @RequestMapping("/api/distributeurs")
+@SecurityRequirement(name = "bearerAuth")
 public class DistributeurController {
 
     private final DistributeurService service;
