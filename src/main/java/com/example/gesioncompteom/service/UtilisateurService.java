@@ -28,7 +28,7 @@ public class UtilisateurService {
     private final SmsService smsService;
     private final CompteService compteService;
 
-    @Value("${JWT_SECRET}")
+    @Value("${JWT_SECRET:default_jwt_secret_for_development_only}")
     private String jwtSecret;
 
     public UtilisateurService(UtilisateurRepository repo, SmsService smsService, CompteService compteService) {

@@ -17,9 +17,11 @@ public class SecurityConfig {
     @Autowired
     private CorsConfigurationSource corsConfigurationSource;
 
+    @Autowired
+    private JwtAuthFilter jwtAuthFilter;
+
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        JwtAuthFilter jwtFilter = new JwtAuthFilter();
 
         http
                 .cors(cors -> cors.configurationSource(corsConfigurationSource))
@@ -32,12 +34,12 @@ public class SecurityConfig {
                          .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html", "/java/**").permitAll()
                          // allow actuator health if present
                          .requestMatchers("/actuator/health", "/actuator/**").permitAll()
-                         // require authentication for compte and transaction endpoints
-                         .requestMatchers("/api/comptes/**", "/api/transactions/**").authenticated()
+                         // allow comptes and transactions without authentication
+                         .requestMatchers("/api/comptes/**", "/api/transactions/**").permitAll()
                          // everything else permit all
                          .anyRequest().permitAll()
                  )
-                .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class)
+                .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)
                 .httpBasic(Customizer.withDefaults());
 
         return http.build();

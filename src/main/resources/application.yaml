@@ -29,6 +29,10 @@ spring:
     basename: messages
     encoding: UTF-8
 
+# JWT secret (use environment variable in production)
+jwt:
+  secret: ${JWT_SECRET:default_jwt_secret_for_development_only}
+
 # Springdoc (Swagger UI) configuration: serve UI under the requested path
 springdoc:
   swagger-ui:
