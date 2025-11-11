@@ -16,6 +16,11 @@ public class DataInitializer {
         return args -> {
             // create a vendor account if not exists
             try {
+                // Check if vendor account already exists
+                compteService.getByNumero("VENDEUR-001");
+                System.out.println("Vendeur déjà présent: VENDEUR-001");
+            } catch (Exception e) {
+                // If not found, create it
                 Compte vendeur = Compte.builder()
                         .numeroCompte("VENDEUR-001")
                         .titulaire("Vendeur Test")
@@ -23,8 +28,6 @@ public class DataInitializer {
                         .build();
                 compteService.create(vendeur);
                 System.out.println("Vendeur initialisé: " + vendeur.getNumeroCompte());
-            } catch (Exception e) {
-                System.out.println("Vendeur déjà présent ou erreur: " + e.getMessage());
             }
         };
     }

@@ -15,7 +15,7 @@ services:
       SPRING_DATASOURCE_DRIVER: org.postgresql.Driver
       # Optional: disable Flyway in container if you prefer to run migrations externally
       # Default is false to avoid accidental automatic schema changes on startup.
-      SPRING_FLYWAY_ENABLED: ${SPRING_FLYWAY_ENABLED:false}
+      SPRING_FLYWAY_ENABLED: "false"
       # JWT secret should also be provided via environment for production
       JWT_SECRET: ${JWT_SECRET}
     restart: on-failure

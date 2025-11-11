@@ -2,11 +2,13 @@ package com.example.gesioncompteom.service;
 
 import com.example.gesioncompteom.exception.NotFoundException;
 import com.example.gesioncompteom.model.Utilisateur;
+import com.example.gesioncompteom.model.Compte;
 import com.example.gesioncompteom.repository.UtilisateurRepository;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
 import org.springframework.stereotype.Service;
+import org.springframework.beans.factory.annotation.Value;
 
 import java.nio.charset.StandardCharsets;
 import java.security.Key;
@@ -17,16 +19,22 @@ import java.util.Random;
 import java.util.UUID;
 import java.util.List;
 import java.util.ArrayList;
+import java.math.BigDecimal;
 
 @Service
 public class UtilisateurService {
 
     private final UtilisateurRepository repo;
     private final SmsService smsService;
+    private final CompteService compteService;
 
-    public UtilisateurService(UtilisateurRepository repo, SmsService smsService) {
+    @Value("${JWT_SECRET}")
+    private String jwtSecret;
+
+    public UtilisateurService(UtilisateurRepository repo, SmsService smsService, CompteService compteService) {
         this.repo = repo;
         this.smsService = smsService;
+        this.compteService = compteService;
     }
 
     public Utilisateur register(String nom, String prenom, String numeroTelephone, String codeVerification) {
@@ -61,13 +69,27 @@ public class UtilisateurService {
         if (!u.isVerified()) {
             u.setVerified(true);
             repo.save(u);
+            
+            // Create account for user if they don't have one
+            try {
+                compteService.getByUtilisateurIdDirect(u.getId().toString());
+            } catch (Exception e) {
+                // Account doesn't exist, create it
+                Compte compte = Compte.builder()
+                        .numeroCompte("ACC-" + UUID.randomUUID().toString())
+                        .solde(BigDecimal.ZERO)
+                        .statut("ACTIF")
+                        .titulaire(u.getNom() + " " + u.getPrenom())
+                        .utilisateurId(u.getId())
+                        .build();
+                compteService.create(compte);
+            }
         }
 
-        String secret = System.getenv("JWT_SECRET");
-        if (secret == null || secret.isBlank()) {
+        if (jwtSecret == null || jwtSecret.isBlank()) {
             throw new IllegalStateException("JWT_SECRET n'est pas configuré");
         }
-        Key key = Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
+        Key key = Keys.hmacShaKeyFor(jwtSecret.getBytes(StandardCharsets.UTF_8));
         Instant now = Instant.now();
         String jwt = Jwts.builder()
                 .setSubject(u.getId().toString())

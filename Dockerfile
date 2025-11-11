@@ -1,13 +1,15 @@
-# Multi-stage build using Maven
-FROM maven:3.9.4-eclipse-temurin-21 AS build
+# Multi-stage build using Gradle
+FROM eclipse-temurin:21-jdk AS build
 WORKDIR /workspace/app
 
-# Copy pom and sources
-COPY pom.xml ./
+# Copy gradle wrapper and sources
+COPY gradlew ./
+COPY gradle ./gradle
+COPY build.gradle settings.gradle ./
 COPY src ./src
 
 # Build the application
-RUN mvn -B -DskipTests package
+RUN chmod +x gradlew && ./gradlew clean build -x test
 
 FROM eclipse-temurin:21-jre
 WORKDIR /app
@@ -15,7 +17,7 @@ WORKDIR /app
 # Copy entrypoint script and jar
 COPY entrypoint.sh /app/entrypoint.sh
 RUN chmod +x /app/entrypoint.sh
-COPY --from=build /workspace/app/target/*.jar /app/app.jar
+COPY --from=build /workspace/app/build/libs/*.jar /app/app.jar
 
 # Expose port
 EXPOSE 8080
