@@ -2,16 +2,12 @@
 FROM maven:3.9.4-eclipse-temurin-21 AS build
 WORKDIR /workspace/app
 
-# Copy Maven wrapper and pom
-COPY mvnw ./
-COPY .mvn ./.mvn
+# Copy pom and source
 COPY pom.xml ./
-
-# Copy source code
 COPY src ./src
 
-# Build the application
-RUN chmod +x mvnw && ./mvnw -B -DskipTests clean package
+# Build the application with Maven directly
+RUN mvn -B -DskipTests clean package
 
 # Runtime stage
 FROM eclipse-temurin:21-jre
