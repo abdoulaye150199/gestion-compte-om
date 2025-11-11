@@ -29,10 +29,12 @@ spring:
     basename: messages
     encoding: UTF-8
 
-# Springdoc (Swagger UI) configuration: serve UI under the requested path
+# Springdoc (Swagger UI) configuration
 springdoc:
   swagger-ui:
-    path: /java/abdoulaye.diallo/docs
+    path: /swagger-ui.html
+  api-docs:
+    path: /v3/api-docs
 
 logging:
   level:

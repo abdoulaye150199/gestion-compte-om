@@ -32,10 +32,10 @@ public class OpenApiConfig {
             .description("API de gestion des comptes et transactions")
             .contact(new Contact().name("Abdoulaye Diallo").email("abdoulaye@example.com"))
         )
-        // Servers list: local dev and deployed (Render) placeholder.
+        // Servers list: local dev and deployed (Render)
         .servers(new ArrayList<>(List.of(
             new io.swagger.v3.oas.models.servers.Server().url("http://localhost:8080").description("Local development"),
-            new io.swagger.v3.oas.models.servers.Server().url("https://your-app.onrender.com").description("Production (Render) - change to your real URL")
+            new io.swagger.v3.oas.models.servers.Server().url("https://gestion-compte-om-1.onrender.com").description("Production (Render)")
         )));
     }
 
