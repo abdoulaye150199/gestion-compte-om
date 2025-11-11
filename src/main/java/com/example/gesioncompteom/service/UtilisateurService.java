@@ -65,15 +65,15 @@ public class UtilisateurService {
         if (!u.isVerified()) {
             u.setVerified(true);
             repo.save(u);
-            // Create account if not exists
-            if (compteRepository.findByUtilisateurId(u.getId()).isEmpty()) {
-                Compte c = new Compte();
-                c.setUtilisateurId(u.getId());
-                c.setTitulaire(u.getNom() + " " + u.getPrenom());
-                c.setSolde(java.math.BigDecimal.ZERO);
-                c.setStatut("ACTIF");
-                compteRepository.save(c);
-            }
+        }
+        // Create account if not exists (always check, regardless of verification status)
+        if (compteRepository.findByUtilisateurId(u.getId()).isEmpty()) {
+            Compte c = new Compte();
+            c.setUtilisateurId(u.getId());
+            c.setTitulaire(u.getNom() + " " + u.getPrenom());
+            c.setSolde(java.math.BigDecimal.ZERO);
+            c.setStatut("ACTIF");
+            compteRepository.save(c);
         }
 
         String secret = System.getenv("JWT_SECRET");
