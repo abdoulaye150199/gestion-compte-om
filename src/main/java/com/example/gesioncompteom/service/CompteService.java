@@ -8,13 +8,13 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.NoSuchElementException;
+import java.util.UUID;
 import com.example.gesioncompteom.model.Transaction;
 import com.example.gesioncompteom.repository.TransactionRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
-import java.math.BigDecimal;
 
 @Service
 @Transactional
@@ -30,7 +30,7 @@ public class CompteService {
 
     public Compte create(Compte c) {
         if (c.getSolde() == null) c.setSolde(BigDecimal.ZERO);
-        if (c.getStatut() == null) c.setStatut("ACTIVE");
+        if (c.getStatut() == null) c.setStatut("ACTIF");
         if (c.getNumeroCompte() == null) c.setNumeroCompte("ACC-" + java.util.UUID.randomUUID().toString());
         if (c.getTitulaire() == null) c.setTitulaire("UNKNOWN");
         return repo.save(c);
@@ -47,7 +47,7 @@ public class CompteService {
         repo.save(c);
         Transaction t = Transaction.builder()
                 .compteId(c.getId())
-                .utilisateurId(utilisateurId)
+                .utilisateurId(UUID.fromString(utilisateurId))
                 .montant(amount)
                 .devise("XOF")
                 .statut("VALIDEE")
@@ -64,7 +64,7 @@ public class CompteService {
         repo.save(c);
         Transaction t = Transaction.builder()
                 .compteId(c.getId())
-                .utilisateurId(utilisateurId)
+                .utilisateurId(UUID.fromString(utilisateurId))
                 .montant(amount)
                 .devise("XOF")
                 .statut("VALIDEE")
@@ -86,7 +86,7 @@ public class CompteService {
 
         Transaction t = Transaction.builder()
                 .compteId(from.getId())
-                .utilisateurId(utilisateurId)
+                .utilisateurId(UUID.fromString(utilisateurId))
                 .montant(amount)
                 .devise("XOF")
                 .statut("VALIDEE")
@@ -104,7 +104,12 @@ public class CompteService {
     }
 
     public Compte getById(String id) {
-        return repo.findById(id).orElseThrow(() -> new NoSuchElementException("Compte not found"));
+        try {
+            UUID uuid = UUID.fromString(id);
+            return repo.findById(uuid).orElseThrow(() -> new NoSuchElementException("Compte not found"));
+        } catch (IllegalArgumentException e) {
+            throw new NoSuchElementException("Invalid Compte ID format");
+        }
     }
 
     public Compte getByNumero(String numero) {

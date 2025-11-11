@@ -1,5 +1,5 @@
 ALTER TABLE transactions
-    ADD COLUMN IF NOT EXISTS compte_id VARCHAR(36);
+    ADD COLUMN IF NOT EXISTS compte_id UUID;
 
 ALTER TABLE transactions
     ADD CONSTRAINT IF NOT EXISTS fk_transactions_compte FOREIGN KEY (compte_id) REFERENCES comptes(id);

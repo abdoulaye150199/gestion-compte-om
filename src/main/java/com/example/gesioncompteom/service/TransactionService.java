@@ -7,6 +7,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.NoSuchElementException;
+import java.util.UUID;
 
 @Service
 @Transactional
@@ -23,7 +24,12 @@ public class TransactionService {
     }
 
     public Transaction getById(String id) {
-        return repo.findById(id).orElseThrow(() -> new NoSuchElementException("Transaction not found"));
+        try {
+            UUID uuid = UUID.fromString(id);
+            return repo.findById(uuid).orElseThrow(() -> new NoSuchElementException("Transaction not found"));
+        } catch (IllegalArgumentException e) {
+            throw new NoSuchElementException("Invalid Transaction ID format");
+        }
     }
 
     public List<Transaction> listAll() { return repo.findAll(); }

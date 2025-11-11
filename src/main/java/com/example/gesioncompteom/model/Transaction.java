@@ -16,14 +16,13 @@ import java.util.UUID;
 public class Transaction {
 
     @Id
-    @Column(length = 36)
-    private String id;
+    private UUID id;
 
     @Column(name = "utilisateur_id", nullable = false)
-    private String utilisateurId;
+    private UUID utilisateurId;
 
     @Column(name = "compte_id")
-    private String compteId;
+    private UUID compteId;
 
     @Column(nullable = false, precision = 38, scale = 2)
     private BigDecimal montant;
@@ -44,7 +43,7 @@ public class Transaction {
 
     @PrePersist
     public void prePersist() {
-        if (id == null) id = UUID.randomUUID().toString();
+        if (id == null) id = UUID.randomUUID();
         if (dateTransaction == null) dateTransaction = OffsetDateTime.now();
     }
 }
