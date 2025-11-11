@@ -1,32 +1,22 @@
 version: '3.8'
 services:
-  db:
-    image: postgres:14
-    environment:
-      POSTGRES_DB: railway
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-    volumes:
-      - db-data:/var/lib/postgresql/data
-    ports:
-      - "5433:5432"  # map host 5433 -> container 5432 to avoid conflicts with local Postgres
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-
+  # The compose setup can run the app container but will connect to an external
+  # PostgreSQL (Neon) instance instead of a local DB. This file expects secrets
+  # to be provided via an environment file or host environment variables.
   app:
     build: .
     ports:
-      - "8081:8080"  # map host 8081 -> container 8080 to avoid conflicts with local services
+      - "8081:8080"  # map host 8081 -> container 8080
     environment:
-      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/railway
-      SPRING_DATASOURCE_USERNAME: postgres
-      SPRING_DATASOURCE_PASSWORD: postgres
-    depends_on:
-      - db
+      # Provide full JDBC URL via NEON_DATABASE_URL or SPRING_DATASOURCE_URL env var
+      SPRING_DATASOURCE_URL: ${NEON_DATABASE_URL}
+      SPRING_DATASOURCE_USERNAME: ${NEON_DATABASE_USERNAME}
+      SPRING_DATASOURCE_PASSWORD: ${NEON_DATABASE_PASSWORD}
+      SPRING_DATASOURCE_DRIVER: org.postgresql.Driver
+      # Optional: disable Flyway in container if you prefer to run migrations externally
+      SPRING_FLYWAY_ENABLED: ${SPRING_FLYWAY_ENABLED:false}
+      # JWT secret should also be provided via environment for production
+      JWT_SECRET: ${JWT_SECRET}
     restart: on-failure
 
-volumes:
-  db-data:
+# No local DB volume in this compose — we rely on the external Neon DB.

@@ -36,3 +36,7 @@ out/
 ### VS Code ###
 .vscode/
 target/
+
+# Local environment file (contains secrets)
+.env
+.env.local
