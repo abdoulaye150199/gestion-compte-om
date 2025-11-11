@@ -66,7 +66,7 @@ public class CompteController {
     @PostMapping("/payer")
     public ResponseEntity<?> payer(@RequestBody PayRequest r) {
         String utilisateurId = extractUserIdFromToken();
-        Transaction t = service.transferByUtilisateurId(utilisateurId, r.merchantTelephone(), r.amount());
+        Transaction t = service.payByUtilisateurId(utilisateurId, r.merchantTelephone(), r.amount());
         return ResponseEntity.ok(Map.of("transactionId", t.getId()));
     }
 

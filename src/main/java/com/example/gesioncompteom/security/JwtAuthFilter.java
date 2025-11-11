@@ -13,6 +13,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.User;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
@@ -39,9 +40,21 @@ public class JwtAuthFilter extends OncePerRequestFilter {
                     Jws<Claims> claims = Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(token);
                     String subject = claims.getBody().getSubject();
 
-                    // Create a simple Authentication with subject as principal
-                    User principal = new User(subject, "", Collections.emptyList());
-                    UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(principal, token, Collections.emptyList());
+                    // Determine authorities: if token has is_distributeur claim, grant ROLE_DISTRIBUTEUR
+                    boolean isDistributeur = false;
+                    Object isDist = claims.getBody().get("is_distributeur");
+                    if (isDist instanceof Boolean) {
+                        isDistributeur = (Boolean) isDist;
+                    }
+
+                    UsernamePasswordAuthenticationToken authentication;
+                    if (isDistributeur) {
+                        User principal = new User(subject, "", Collections.singletonList(new SimpleGrantedAuthority("ROLE_DISTRIBUTEUR")));
+                        authentication = new UsernamePasswordAuthenticationToken(principal, token, principal.getAuthorities());
+                    } else {
+                        User principal = new User(subject, "", Collections.emptyList());
+                        authentication = new UsernamePasswordAuthenticationToken(principal, token, Collections.emptyList());
+                    }
                     authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                     SecurityContextHolder.getContext().setAuthentication(authentication);
                 } catch (Exception ex) {

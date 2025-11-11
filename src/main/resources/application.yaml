@@ -13,7 +13,6 @@ spring:
 
   jpa:
     hibernate:
-      # Set to validate since schema should already exist
       ddl-auto: validate
     show-sql: true
     properties:
@@ -22,7 +21,7 @@ spring:
         dialect: org.hibernate.dialect.PostgreSQLDialect
 
   flyway:
-    enabled: false
+    enabled: true
     locations: classpath:db/migration
 
   messages:

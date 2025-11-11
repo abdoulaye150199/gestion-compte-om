@@ -25,18 +25,23 @@ public class SecurityConfig {
                 .cors(cors -> cors.configurationSource(corsConfigurationSource))
                 .csrf(csrf -> csrf.disable())
                 .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .authorizeHttpRequests(auth -> auth
-                        // public endpoints
-                        .requestMatchers("/api/utilisateurs/register", "/api/utilisateurs/verify").permitAll()
-                        // allow OpenAPI and Swagger UI
-                        .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html", "/java/**").permitAll()
-                        // allow actuator health if present
-                        .requestMatchers("/actuator/health", "/actuator/**").permitAll()
-                        // everything else requires authentication
-                        .anyRequest().permitAll()
-                )
-                .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)
-                .httpBasic(Customizer.withDefaults());
+        .authorizeHttpRequests(auth -> auth
+            // public endpoints
+            .requestMatchers("/api/utilisateurs/register", "/api/utilisateurs/verify").permitAll()
+            // distributeur login is public
+            .requestMatchers("/api/distributeurs/login").permitAll()
+            // allow OpenAPI and Swagger UI
+            .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html", "/java/**").permitAll()
+            // allow actuator health if present
+            .requestMatchers("/actuator/health", "/actuator/**").permitAll()
+            // distributor-only endpoints
+            .requestMatchers("/api/distributeurs/depot", "/api/distributeurs/retrait").hasAuthority("ROLE_DISTRIBUTEUR")
+            // existing compte deposit/retrait should be restricted (disabled for normal clients)
+            .requestMatchers("/api/comptes/depot", "/api/comptes/retrait").hasAuthority("ROLE_DISTRIBUTEUR")
+            // everything else requires authentication
+            .anyRequest().authenticated()
+        )
+                .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }

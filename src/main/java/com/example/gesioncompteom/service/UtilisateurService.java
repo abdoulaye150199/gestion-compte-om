@@ -1,7 +1,9 @@
 package com.example.gesioncompteom.service;
 
 import com.example.gesioncompteom.exception.NotFoundException;
+import com.example.gesioncompteom.model.Compte;
 import com.example.gesioncompteom.model.Utilisateur;
+import com.example.gesioncompteom.repository.CompteRepository;
 import com.example.gesioncompteom.repository.UtilisateurRepository;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
@@ -23,10 +25,12 @@ public class UtilisateurService {
 
     private final UtilisateurRepository repo;
     private final SmsService smsService;
+    private final CompteRepository compteRepository;
 
-    public UtilisateurService(UtilisateurRepository repo, SmsService smsService) {
+    public UtilisateurService(UtilisateurRepository repo, SmsService smsService, CompteRepository compteRepository) {
         this.repo = repo;
         this.smsService = smsService;
+        this.compteRepository = compteRepository;
     }
 
     public Utilisateur register(String nom, String prenom, String numeroTelephone, String codeVerification) {
@@ -61,6 +65,15 @@ public class UtilisateurService {
         if (!u.isVerified()) {
             u.setVerified(true);
             repo.save(u);
+            // Create account if not exists
+            if (compteRepository.findByUtilisateurId(u.getId()).isEmpty()) {
+                Compte c = new Compte();
+                c.setUtilisateurId(u.getId());
+                c.setTitulaire(u.getNom() + " " + u.getPrenom());
+                c.setSolde(java.math.BigDecimal.ZERO);
+                c.setStatut("ACTIF");
+                compteRepository.save(c);
+            }
         }
 
         String secret = System.getenv("JWT_SECRET");

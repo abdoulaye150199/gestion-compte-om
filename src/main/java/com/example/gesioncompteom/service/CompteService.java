@@ -218,5 +218,31 @@ public class CompteService {
         return repo.findByUtilisateurId(u.getId())
                 .orElseThrow(() -> new NoSuchElementException("Account not found for user"));
     }
+
+    @org.springframework.transaction.annotation.Transactional
+    public Transaction payByUtilisateurId(String fromUtilisateurId, String toUtilisateurTelephone, BigDecimal amount) {
+        Compte from = getByUtilisateurId(fromUtilisateurId);
+        // Find recipient by telephone number (from Utilisateur table)
+        // For simplicity, we'll find the account linked to that user
+        // This requires looking up the user by phone, then their account
+        Compte to = getByUtilisateurPhoneNumber(toUtilisateurTelephone);
+
+        if (from.getSolde().compareTo(amount) < 0) throw new IllegalArgumentException("insufficient_balance");
+        from.setSolde(from.getSolde().subtract(amount));
+        to.setSolde(to.getSolde().add(amount));
+        repo.save(from);
+        repo.save(to);
+
+        Transaction t = Transaction.builder()
+                .compteId(from.getId())
+                .utilisateurId(UUID.fromString(fromUtilisateurId))
+                .montant(amount)
+                .devise("XOF")
+                .statut("VALIDEE")
+                .type("PAIEMENT")
+                .description("Paiement à " + to.getTitulaire())
+                .build();
+        return transactionRepository.save(t);
+    }
 }
 
