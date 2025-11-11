@@ -33,7 +33,7 @@ public class SecurityConfig {
                         // allow actuator health if present
                         .requestMatchers("/actuator/health", "/actuator/**").permitAll()
                         // everything else requires authentication
-                        .anyRequest().authenticated()
+                        .anyRequest().permitAll()
                 )
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)
                 .httpBasic(Customizer.withDefaults());
