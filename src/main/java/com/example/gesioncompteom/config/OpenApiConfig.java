@@ -18,16 +18,28 @@ public class OpenApiConfig {
 
     @Bean
     public OpenAPI customOpenAPI() {
-        SecurityScheme bearer = new SecurityScheme()
+
+        // ✅ Définir le schéma de sécurité JWT Bearer
+        SecurityScheme bearerAuthScheme = new SecurityScheme()
+                .name("Authorization")
                 .type(SecurityScheme.Type.HTTP)
                 .scheme("bearer")
                 .bearerFormat("JWT")
-                .in(SecurityScheme.In.HEADER)
-                .name("Authorization");
+                .in(SecurityScheme.In.HEADER);
 
+        // ✅ Ajouter une exigence de sécurité globale
+        SecurityRequirement securityRequirement = new SecurityRequirement().addList("bearerAuth");
+
+        // ✅ Définir les serveurs (local + production Render)
+        List<Server> servers = new ArrayList<>();
+        servers.add(new Server().url("http://localhost:8080").description("Local Development"));
+        servers.add(new Server().url("https://gestion-compte-om-1.onrender.com").description("Production Render 1"));
+        servers.add(new Server().url("https://gestion-compte-om-2.onrender.com").description("Production Render 2"));
+
+        // ✅ Construire la documentation OpenAPI
         return new OpenAPI()
-                .components(new Components().addSecuritySchemes("bearerAuth", bearer))
-                .addSecurityItem(new SecurityRequirement().addList("bearerAuth"))
+                .components(new Components().addSecuritySchemes("bearerAuth", bearerAuthScheme))
+                .addSecurityItem(securityRequirement)
                 .info(new Info()
                         .title("Gestion Compte OM API")
                         .version("1.0.0")
@@ -37,10 +49,6 @@ public class OpenApiConfig {
                                 .email("abdoulaye@example.com")
                         )
                 )
-                .servers(new ArrayList<>(List.of(
-                        new Server().url("http://localhost:8080").description("Local development"),
-                        new Server().url("https://gestion-compte-om-1.onrender.com").description("Production Render 1"),
-                        new Server().url("https://gestion-compte-om-2.onrender.com").description("Production Render 2")
-                )));
+                .servers(servers);
     }
 }
