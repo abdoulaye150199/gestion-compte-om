@@ -36,6 +36,7 @@ public class OpenApiConfig {
         .servers(new ArrayList<>(List.of(
             new io.swagger.v3.oas.models.servers.Server().url("http://localhost:8080").description("Local development"),
             new io.swagger.v3.oas.models.servers.Server().url("https://gestion-compte-om-1.onrender.com").description("Production (Render)")
+                        new io.swagger.v3.oas.models.servers.Server().url("https://gestion-compte-om-2.onrender.com").description("Production (Render)")
         )));
     }
 
