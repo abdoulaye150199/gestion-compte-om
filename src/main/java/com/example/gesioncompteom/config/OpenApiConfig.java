@@ -37,9 +37,6 @@ public class OpenApiConfig {
                 .bearerFormat("JWT")
                 .in(io.swagger.v3.oas.models.security.SecurityScheme.In.HEADER);
 
-        // ✅ Ajouter une exigence de sécurité globale
-        SecurityRequirement securityRequirement = new SecurityRequirement().addList("bearerAuth");
-
         // ✅ Définir les serveurs (local + production Render)
         List<Server> servers = new ArrayList<>();
         servers.add(new Server().url("http://localhost:8080").description("Local Development"));
@@ -49,7 +46,6 @@ public class OpenApiConfig {
         // ✅ Construire la documentation OpenAPI
         OpenAPI openAPI = new OpenAPI()
                 .components(new Components().addSecuritySchemes("bearerAuth", bearerAuthScheme))
-                .addSecurityItem(securityRequirement)
                 .info(new Info()
                         .title("Gestion Compte OM API")
                         .version("1.0.0")

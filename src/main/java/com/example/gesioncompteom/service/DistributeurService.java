@@ -5,7 +5,6 @@ import com.example.gesioncompteom.model.Transaction;
 import com.example.gesioncompteom.model.Utilisateur;
 import com.example.gesioncompteom.repository.DistributeurRepository;
 import com.example.gesioncompteom.repository.TransactionRepository;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import io.jsonwebtoken.Jwts;
@@ -21,9 +20,6 @@ import java.util.Map;
 
 @Service
 public class DistributeurService {
-
-    @Value("${JWT_SECRET:default_jwt_secret_for_development_only}")
-    private String jwtSecret;
 
     private final DistributeurRepository repo;
     private final UtilisateurService utilisateurService;
@@ -43,7 +39,9 @@ public class DistributeurService {
                 .orElseGet(() -> repo.findByCodeDistributeur(numeroOrCode).orElse(null));
         if (d == null) return Map.of("ok", false);
 
-        Key key = Keys.hmacShaKeyFor(jwtSecret.getBytes(StandardCharsets.UTF_8));
+        String secret = System.getenv("JWT_SECRET");
+        if (secret == null || secret.isBlank()) throw new IllegalStateException("JWT_SECRET not configured");
+        Key key = Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
         Instant now = Instant.now();
         String jwt = Jwts.builder()
                 .setSubject(d.getId().toString())

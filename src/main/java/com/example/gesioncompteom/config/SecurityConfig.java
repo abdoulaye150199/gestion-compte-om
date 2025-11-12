@@ -4,6 +4,7 @@ import com.example.gesioncompteom.security.JwtAuthFilter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.Customizer;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
@@ -11,6 +12,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 import org.springframework.web.cors.CorsConfigurationSource;
 
 @Configuration
+@EnableMethodSecurity
 public class SecurityConfig {
 
     private final CorsConfigurationSource corsConfigurationSource;
@@ -34,6 +36,8 @@ public class SecurityConfig {
             .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html", "/java/**").permitAll()
             // allow actuator health if present
             .requestMatchers("/actuator/health", "/actuator/**").permitAll()
+            // user and distributor endpoints
+            .requestMatchers("/api/comptes/**", "/api/transactions/**").hasAnyAuthority("ROLE_UTILISATEUR", "ROLE_DISTRIBUTEUR")
             // distributor-only endpoints
             .requestMatchers("/api/distributeurs/depot", "/api/distributeurs/retrait").hasAuthority("ROLE_DISTRIBUTEUR")
             // everything else requires authentication

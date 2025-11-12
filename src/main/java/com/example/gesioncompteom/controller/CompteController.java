@@ -6,9 +6,12 @@ import com.example.gesioncompteom.util.QrUtil;
 import com.example.gesioncompteom.model.Compte;
 import com.example.gesioncompteom.assembler.CompteModelAssembler;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.web.bind.annotation.*;
+
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 
 import java.io.IOException;
 import java.math.BigDecimal;
@@ -19,6 +22,7 @@ import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/comptes")
+@SecurityRequirement(name = "bearerAuth")
 public class CompteController {
 
     private final CompteService service;
@@ -30,6 +34,7 @@ public class CompteController {
     }
 
     @GetMapping("/solde")
+    @PreAuthorize("hasAnyAuthority('ROLE_UTILISATEUR', 'ROLE_DISTRIBUTEUR')")
     public ResponseEntity<?> getSolde() {
         String utilisateurId = extractUserIdFromToken();
         BigDecimal solde = service.getSoldeByUtilisateurId(utilisateurId);
@@ -40,6 +45,7 @@ public class CompteController {
     record TransferRequest(String toUtilisateurTelephone, BigDecimal amount) {}
 
     @PostMapping("/transfert")
+    @PreAuthorize("hasAuthority('ROLE_UTILISATEUR')")
     public ResponseEntity<?> transfert(@RequestBody TransferRequest r) {
         String utilisateurId = extractUserIdFromToken();
         Transaction t = service.transferByUtilisateurId(utilisateurId, r.toUtilisateurTelephone(), r.amount());
@@ -49,6 +55,7 @@ public class CompteController {
     record PayRequest(String merchantTelephone, BigDecimal amount) {}
 
     @PostMapping("/payer")
+    @PreAuthorize("hasAuthority('ROLE_UTILISATEUR')")
     public ResponseEntity<?> payer(@RequestBody PayRequest r) {
         String utilisateurId = extractUserIdFromToken();
         Transaction t = service.payByUtilisateurId(utilisateurId, r.merchantTelephone(), r.amount());
@@ -67,6 +74,7 @@ public class CompteController {
     }
 
     @GetMapping("/qr")
+    @PreAuthorize("hasAnyAuthority('ROLE_UTILISATEUR', 'ROLE_DISTRIBUTEUR')")
     public ResponseEntity<?> qr() throws Exception {
         String utilisateurId = extractUserIdFromToken();
         Compte c = service.getByUtilisateurIdDirect(utilisateurId);

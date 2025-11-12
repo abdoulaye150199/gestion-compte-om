@@ -6,9 +6,12 @@ import com.example.gesioncompteom.service.TransactionService;
 import org.springframework.hateoas.CollectionModel;
 import org.springframework.hateoas.EntityModel;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.web.bind.annotation.*;
+
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 
 import java.net.URI;
 import java.util.List;
@@ -20,6 +23,7 @@ import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 
 @RestController
 @RequestMapping("/api/transactions")
+@SecurityRequirement(name = "bearerAuth")
 public class TransactionController {
 
     private final TransactionService service;
@@ -33,6 +37,7 @@ public class TransactionController {
 
 
     @GetMapping("/{id}")
+    @PreAuthorize("hasAnyAuthority('ROLE_UTILISATEUR', 'ROLE_DISTRIBUTEUR')")
     public EntityModel<Transaction> get(@PathVariable String id) {
         Transaction t = service.getById(id);
         String utilisateurId = extractUserIdFromToken();
@@ -43,6 +48,7 @@ public class TransactionController {
     }
 
     @GetMapping
+    @PreAuthorize("hasAnyAuthority('ROLE_UTILISATEUR', 'ROLE_DISTRIBUTEUR')")
     public CollectionModel<EntityModel<Transaction>> list() {
         String utilisateurId = extractUserIdFromToken();
         List<EntityModel<Transaction>> list = service.listByUtilisateurId(UUID.fromString(utilisateurId)).stream()
