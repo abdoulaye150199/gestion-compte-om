@@ -441,3 +441,34 @@ java.lang.IllegalStateException: JWT_SECRET not configured
 2025-11-12T00:35:25.457Z DEBUG 561942 --- [GestionCompteOM] [nio-8080-exec-1] o.s.w.s.m.m.a.HttpEntityMethodProcessor  : Using 'application/json', given [*/*] and supported [application/json, application/*+json, application/xml;charset=UTF-8, text/xml;charset=UTF-8, application/*+xml;charset=UTF-8]
 2025-11-12T00:35:25.457Z DEBUG 561942 --- [GestionCompteOM] [nio-8080-exec-1] o.s.w.s.m.m.a.HttpEntityMethodProcessor  : Writing [{message=JWT_SECRET not configured, error=internal_error}]
 2025-11-12T00:35:25.458Z DEBUG 561942 --- [GestionCompteOM] [nio-8080-exec-1] o.s.web.servlet.DispatcherServlet        : Completed 500 INTERNAL_SERVER_ERROR
+2025-11-12T00:37:37.260Z DEBUG 561942 --- [GestionCompteOM] [nio-8080-exec-6] o.s.web.servlet.DispatcherServlet        : GET "/swagger-ui/index.html", parameters={}
+2025-11-12T00:37:37.262Z DEBUG 561942 --- [GestionCompteOM] [nio-8080-exec-6] o.s.w.s.handler.SimpleUrlHandlerMapping  : Mapped to ResourceHttpRequestHandler [classpath [META-INF/resources/webjars/]]
+2025-11-12T00:37:37.268Z DEBUG 561942 --- [GestionCompteOM] [nio-8080-exec-6] o.s.web.servlet.DispatcherServlet        : Completed 200 OK
+2025-11-12T00:37:37.291Z DEBUG 561942 --- [GestionCompteOM] [nio-8080-exec-8] o.s.web.servlet.DispatcherServlet        : GET "/swagger-ui/index.css", parameters={}
+2025-11-12T00:37:37.291Z DEBUG 561942 --- [GestionCompteOM] [nio-8080-exec-5] o.s.web.servlet.DispatcherServlet        : GET "/swagger-ui/swagger-ui.css", parameters={}
+2025-11-12T00:37:37.292Z DEBUG 561942 --- [GestionCompteOM] [nio-8080-exec-8] o.s.w.s.handler.SimpleUrlHandlerMapping  : Mapped to ResourceHttpRequestHandler [classpath [META-INF/resources/webjars/]]
+2025-11-12T00:37:37.292Z DEBUG 561942 --- [GestionCompteOM] [nio-8080-exec-5] o.s.w.s.handler.SimpleUrlHandlerMapping  : Mapped to ResourceHttpRequestHandler [classpath [META-INF/resources/webjars/]]
+2025-11-12T00:37:37.292Z DEBUG 561942 --- [GestionCompteOM] [io-8080-exec-10] o.s.web.servlet.DispatcherServlet        : GET "/swagger-ui/swagger-ui-bundle.js", parameters={}
+2025-11-12T00:37:37.292Z DEBUG 561942 --- [GestionCompteOM] [nio-8080-exec-9] o.s.web.servlet.DispatcherServlet        : GET "/swagger-ui/swagger-ui-standalone-preset.js", parameters={}
+2025-11-12T00:37:37.292Z DEBUG 561942 --- [GestionCompteOM] [nio-8080-exec-1] o.s.web.servlet.DispatcherServlet        : GET "/swagger-ui/swagger-initializer.js", parameters={}
+2025-11-12T00:37:37.293Z DEBUG 561942 --- [GestionCompteOM] [io-8080-exec-10] o.s.w.s.handler.SimpleUrlHandlerMapping  : Mapped to ResourceHttpRequestHandler [classpath [META-INF/resources/webjars/]]
+2025-11-12T00:37:37.293Z DEBUG 561942 --- [GestionCompteOM] [nio-8080-exec-9] o.s.w.s.handler.SimpleUrlHandlerMapping  : Mapped to ResourceHttpRequestHandler [classpath [META-INF/resources/webjars/]]
+2025-11-12T00:37:37.293Z DEBUG 561942 --- [GestionCompteOM] [nio-8080-exec-1] o.s.w.s.handler.SimpleUrlHandlerMapping  : Mapped to ResourceHttpRequestHandler [classpath [META-INF/resources/webjars/]]
+2025-11-12T00:37:37.295Z DEBUG 561942 --- [GestionCompteOM] [nio-8080-exec-8] o.s.web.servlet.DispatcherServlet        : Completed 200 OK
+2025-11-12T00:37:37.297Z DEBUG 561942 --- [GestionCompteOM] [nio-8080-exec-5] o.s.web.servlet.DispatcherServlet        : Completed 200 OK
+2025-11-12T00:37:37.296Z DEBUG 561942 --- [GestionCompteOM] [nio-8080-exec-1] o.s.web.servlet.DispatcherServlet        : Completed 200 OK
+2025-11-12T00:37:37.299Z DEBUG 561942 --- [GestionCompteOM] [nio-8080-exec-9] o.s.web.servlet.DispatcherServlet        : Completed 200 OK
+2025-11-12T00:37:37.305Z DEBUG 561942 --- [GestionCompteOM] [io-8080-exec-10] o.s.web.servlet.DispatcherServlet        : Completed 200 OK
+2025-11-12T00:37:37.395Z DEBUG 561942 --- [GestionCompteOM] [nio-8080-exec-4] o.s.web.servlet.DispatcherServlet        : GET "/v3/api-docs/swagger-config", parameters={}
+2025-11-12T00:37:37.395Z DEBUG 561942 --- [GestionCompteOM] [nio-8080-exec-4] s.w.s.m.m.a.RequestMappingHandlerMapping : Mapped to org.springdoc.webmvc.ui.SwaggerConfigResource#openapiJson(HttpServletRequest)
+2025-11-12T00:37:37.396Z DEBUG 561942 --- [GestionCompteOM] [nio-8080-exec-4] m.m.a.RequestResponseBodyMethodProcessor : Using 'application/json', given [*/*] and supported [application/json]
+2025-11-12T00:37:37.397Z DEBUG 561942 --- [GestionCompteOM] [nio-8080-exec-4] m.m.a.RequestResponseBodyMethodProcessor : Writing [{configUrl=/v3/api-docs/swagger-config, oauth2RedirectUrl=http://localhost:8080/swagger-ui/oauth2-re (truncated)...]
+2025-11-12T00:37:37.397Z DEBUG 561942 --- [GestionCompteOM] [nio-8080-exec-2] o.s.web.servlet.DispatcherServlet        : GET "/swagger-ui/favicon-32x32.png", parameters={}
+2025-11-12T00:37:37.398Z DEBUG 561942 --- [GestionCompteOM] [nio-8080-exec-2] o.s.w.s.handler.SimpleUrlHandlerMapping  : Mapped to ResourceHttpRequestHandler [classpath [META-INF/resources/webjars/]]
+2025-11-12T00:37:37.398Z DEBUG 561942 --- [GestionCompteOM] [nio-8080-exec-4] o.s.web.servlet.DispatcherServlet        : Completed 200 OK
+2025-11-12T00:37:37.402Z DEBUG 561942 --- [GestionCompteOM] [nio-8080-exec-2] o.s.web.servlet.DispatcherServlet        : Completed 200 OK
+2025-11-12T00:37:37.420Z DEBUG 561942 --- [GestionCompteOM] [nio-8080-exec-7] o.s.web.servlet.DispatcherServlet        : GET "/v3/api-docs", parameters={}
+2025-11-12T00:37:37.421Z DEBUG 561942 --- [GestionCompteOM] [nio-8080-exec-7] s.w.s.m.m.a.RequestMappingHandlerMapping : Mapped to org.springdoc.webmvc.api.OpenApiWebMvcResource#openapiJson(HttpServletRequest, String, Locale)
+2025-11-12T00:37:37.423Z DEBUG 561942 --- [GestionCompteOM] [nio-8080-exec-7] m.m.a.RequestResponseBodyMethodProcessor : Using 'application/json', given [application/json, */*] and supported [application/json]
+2025-11-12T00:37:37.424Z DEBUG 561942 --- [GestionCompteOM] [nio-8080-exec-7] m.m.a.RequestResponseBodyMethodProcessor : Writing [{123, 34, 111, 112, 101, 110, 97, 112, 105, 34, 58, 34, 51, 46, 48, 46, 49, 34, 44, 34, 105, 110, 10 (truncated)...]
+2025-11-12T00:37:37.426Z DEBUG 561942 --- [GestionCompteOM] [nio-8080-exec-7] o.s.web.servlet.DispatcherServlet        : Completed 200 OK

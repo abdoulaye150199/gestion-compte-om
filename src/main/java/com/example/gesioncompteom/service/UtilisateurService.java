@@ -8,6 +8,7 @@ import com.example.gesioncompteom.repository.UtilisateurRepository;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.nio.charset.StandardCharsets;
@@ -22,6 +23,9 @@ import java.util.ArrayList;
 
 @Service
 public class UtilisateurService {
+
+    @Value("${JWT_SECRET:default_jwt_secret_for_development_only}")
+    private String jwtSecret;
 
     private final UtilisateurRepository repo;
     private final SmsService smsService;
@@ -77,11 +81,7 @@ public class UtilisateurService {
             compteRepository.save(c);
         }
 
-        String secret = System.getenv("JWT_SECRET");
-        if (secret == null || secret.isBlank()) {
-            throw new IllegalStateException("JWT_SECRET n'est pas configuré");
-        }
-        Key key = Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
+        Key key = Keys.hmacShaKeyFor(jwtSecret.getBytes(StandardCharsets.UTF_8));
         Instant now = Instant.now();
         String jwt = Jwts.builder()
                 .setSubject(u.getId().toString())

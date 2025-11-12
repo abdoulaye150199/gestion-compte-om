@@ -33,5 +33,9 @@ public class TransactionService {
     }
 
     public List<Transaction> listAll() { return repo.findAll(); }
+
+    public List<Transaction> listByUtilisateurId(UUID utilisateurId) {
+        return repo.findByUtilisateurId(utilisateurId);
+    }
 }
 
