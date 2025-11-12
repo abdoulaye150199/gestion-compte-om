@@ -5,27 +5,37 @@ import io.swagger.v3.oas.models.Components;
 import io.swagger.v3.oas.models.info.Contact;
 import io.swagger.v3.oas.models.info.Info;
 import io.swagger.v3.oas.models.security.SecurityRequirement;
-import io.swagger.v3.oas.models.security.SecurityScheme;
 import io.swagger.v3.oas.models.servers.Server;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import io.swagger.v3.oas.annotations.security.SecurityScheme;
+import io.swagger.v3.oas.annotations.enums.SecuritySchemeType;
+import io.swagger.v3.oas.annotations.enums.SecuritySchemeIn;
 
 import java.util.List;
 import java.util.ArrayList;
+// no OpenApiCustomiser import (not available on current classpath)
 
 @Configuration
+@SecurityScheme(
+        name = "bearerAuth",
+        type = SecuritySchemeType.HTTP,
+        scheme = "bearer",
+        bearerFormat = "JWT",
+        in = SecuritySchemeIn.HEADER
+)
 public class OpenApiConfig {
 
     @Bean
     public OpenAPI customOpenAPI() {
 
-        // ✅ Définir le schéma de sécurité JWT Bearer
-        SecurityScheme bearerAuthScheme = new SecurityScheme()
+        // ✅ Définir le schéma de sécurité JWT Bearer (modèle OpenAPI)
+        io.swagger.v3.oas.models.security.SecurityScheme bearerAuthScheme = new io.swagger.v3.oas.models.security.SecurityScheme()
                 .name("Authorization")
-                .type(SecurityScheme.Type.HTTP)
+                .type(io.swagger.v3.oas.models.security.SecurityScheme.Type.HTTP)
                 .scheme("bearer")
                 .bearerFormat("JWT")
-                .in(SecurityScheme.In.HEADER);
+                .in(io.swagger.v3.oas.models.security.SecurityScheme.In.HEADER);
 
         // ✅ Ajouter une exigence de sécurité globale
         SecurityRequirement securityRequirement = new SecurityRequirement().addList("bearerAuth");
@@ -37,7 +47,7 @@ public class OpenApiConfig {
         servers.add(new Server().url("https://gestion-compte-om-2.onrender.com").description("Production Render 2"));
 
         // ✅ Construire la documentation OpenAPI
-        return new OpenAPI()
+        OpenAPI openAPI = new OpenAPI()
                 .components(new Components().addSecuritySchemes("bearerAuth", bearerAuthScheme))
                 .addSecurityItem(securityRequirement)
                 .info(new Info()
@@ -49,6 +59,11 @@ public class OpenApiConfig {
                                 .email("abdoulaye@example.com")
                         )
                 )
-                .servers(servers);
-    }
-}
+                                .servers(servers);
+
+                // return the built OpenAPI
+                // Also provide a customiser to ensure the security scheme is present on the final OpenAPI instance
+                return openAPI;
+        }
+
+        }
