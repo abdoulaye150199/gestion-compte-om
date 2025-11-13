@@ -244,12 +244,12 @@ public class UtilisateurService {
                 })
                 .toList();
 
-        return Map.of(
-                "lastTransactions", lastTransactions,
-                "qrCode", qrCode,
-                "solde", solde,
-                "nom", u.getNom(),
-                "prenom", u.getPrenom()
-        );
+        Map<String, Object> dashboard = new java.util.LinkedHashMap<>();
+        dashboard.put("prenom", u.getPrenom());
+        dashboard.put("nom", u.getNom());
+        dashboard.put("qrCode", qrCode);
+        dashboard.put("solde", solde);
+        dashboard.put("lastTransactions", lastTransactions);
+        return dashboard;
     }
 }

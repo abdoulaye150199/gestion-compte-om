@@ -29,6 +29,10 @@ spring:
     basename: messages
     encoding: UTF-8
 
+  jackson:
+    mapper:
+      SORT_PROPERTIES_ALPHABETICALLY: false
+
 # Springdoc (Swagger UI) configuration
 springdoc:
   swagger-ui:
