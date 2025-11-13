@@ -1,0 +1,3 @@
+ALTER TABLE utilisateurs ADD COLUMN statut VARCHAR(255) DEFAULT 'INACTIF';
+ALTER TABLE utilisateurs ADD COLUMN otp VARCHAR(255);
+ALTER TABLE utilisateurs ADD COLUMN otp_expiration TIMESTAMP;

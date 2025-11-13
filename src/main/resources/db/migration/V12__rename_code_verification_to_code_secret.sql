@@ -1,0 +1,1 @@
+ALTER TABLE utilisateurs RENAME COLUMN code_verification TO code_secret;

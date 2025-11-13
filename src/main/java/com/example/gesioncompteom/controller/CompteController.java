@@ -2,6 +2,7 @@ package com.example.gesioncompteom.controller;
 
 import com.example.gesioncompteom.model.Transaction;
 import com.example.gesioncompteom.service.CompteService;
+import com.example.gesioncompteom.service.UtilisateurService;
 import com.example.gesioncompteom.util.QrUtil;
 import com.example.gesioncompteom.model.Compte;
 import com.example.gesioncompteom.assembler.CompteModelAssembler;
@@ -26,10 +27,12 @@ import java.util.stream.Collectors;
 public class CompteController {
 
     private final CompteService service;
+    private final UtilisateurService utilisateurService;
     private final CompteModelAssembler assembler;
 
-    public CompteController(CompteService service, CompteModelAssembler assembler) {
+    public CompteController(CompteService service, UtilisateurService utilisateurService, CompteModelAssembler assembler) {
         this.service = service;
+        this.utilisateurService = utilisateurService;
         this.assembler = assembler;
     }
 
@@ -49,16 +52,37 @@ public class CompteController {
     public ResponseEntity<?> transfert(@RequestBody TransferRequest r) {
         String utilisateurId = extractUserIdFromToken();
         Transaction t = service.transferByUtilisateurId(utilisateurId, r.toUtilisateurTelephone(), r.amount());
-        return ResponseEntity.ok(Map.of("transactionId", t.getId()));
+
+        // Get current user info for expediteur
+        var currentUser = utilisateurService.findById(java.util.UUID.fromString(utilisateurId)).orElseThrow();
+
+        // Get updated balance after transfer
+        BigDecimal currentBalance = service.getSoldeByUtilisateurId(utilisateurId);
+
+        // Extract destinataire from transaction description
+        String destinataire = null;
+        String desc = t.getDescription();
+        if (desc != null && desc.contains("vers ")) {
+            destinataire = desc.substring(desc.indexOf("vers ") + 5);
+        }
+
+        return ResponseEntity.ok(Map.of(
+            "destinataire", destinataire,
+            "expediteur", currentUser.getNom() + " " + currentUser.getPrenom(),
+            "montant", t.getMontant().negate(), // Negative amount for outgoing transfer
+            "date", t.getDateTransaction(),
+            "reference", t.getId(),
+            "solde", currentBalance
+        ));
     }
 
-    record PayRequest(String merchantTelephone, BigDecimal amount) {}
+    record PayRequest(String recipientIdentifier, BigDecimal amount) {}
 
     @PostMapping("/payer")
     @PreAuthorize("hasAuthority('ROLE_UTILISATEUR')")
     public ResponseEntity<?> payer(@RequestBody PayRequest r) {
         String utilisateurId = extractUserIdFromToken();
-        Transaction t = service.payByUtilisateurId(utilisateurId, r.merchantTelephone(), r.amount());
+        Transaction t = service.payByUtilisateurId(utilisateurId, r.recipientIdentifier(), r.amount());
         return ResponseEntity.ok(Map.of("transactionId", t.getId()));
     }
 
@@ -81,5 +105,14 @@ public class CompteController {
         // QR contains the account numero
         String dataUrl = QrUtil.toDataUrlPng(c.getNumeroCompte(), 300);
         return ResponseEntity.ok(Map.of("qrDataUrl", dataUrl));
+    }
+
+    @GetMapping("/dashboard")
+    @PreAuthorize("hasAuthority('ROLE_UTILISATEUR')")
+    public ResponseEntity<?> dashboard() throws Exception {
+        String userIdStr = SecurityContextHolder.getContext().getAuthentication().getName();
+        java.util.UUID userId = java.util.UUID.fromString(userIdStr);
+        Map<String, Object> dashboard = utilisateurService.getDashboard(userId);
+        return ResponseEntity.ok(dashboard);
     }
 }

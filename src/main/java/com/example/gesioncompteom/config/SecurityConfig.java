@@ -29,7 +29,7 @@ public class SecurityConfig {
                 .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
         .authorizeHttpRequests(auth -> auth
             // public endpoints
-            .requestMatchers("/api/utilisateurs/register", "/api/utilisateurs/verify").permitAll()
+            .requestMatchers("/api/utilisateurs/register", "/api/utilisateurs/login", "/api/utilisateurs/refresh", "/api/utilisateurs/verify-otp").permitAll()
             // distributeur login is public
             .requestMatchers("/api/distributeurs/login").permitAll()
             // allow OpenAPI and Swagger UI

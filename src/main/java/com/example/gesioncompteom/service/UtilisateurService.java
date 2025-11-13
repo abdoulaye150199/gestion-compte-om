@@ -2,9 +2,13 @@ package com.example.gesioncompteom.service;
 
 import com.example.gesioncompteom.exception.NotFoundException;
 import com.example.gesioncompteom.model.Compte;
+import com.example.gesioncompteom.model.Transaction;
 import com.example.gesioncompteom.model.Utilisateur;
 import com.example.gesioncompteom.repository.CompteRepository;
+import com.example.gesioncompteom.repository.TransactionRepository;
 import com.example.gesioncompteom.repository.UtilisateurRepository;
+import com.example.gesioncompteom.util.QrUtil;
+import com.google.zxing.WriterException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
@@ -14,12 +18,16 @@ import org.springframework.stereotype.Service;
 import java.nio.charset.StandardCharsets;
 import java.security.Key;
 import java.time.Instant;
+import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.Optional;
 import java.util.Random;
 import java.util.UUID;
 import java.util.List;
 import java.util.ArrayList;
+import java.util.Map;
+import java.io.IOException;
+import java.math.BigDecimal;
 
 @Service
 public class UtilisateurService {
@@ -30,14 +38,16 @@ public class UtilisateurService {
     private final UtilisateurRepository repo;
     private final SmsService smsService;
     private final CompteRepository compteRepository;
+    private final TransactionRepository transactionRepository;
 
-    public UtilisateurService(UtilisateurRepository repo, SmsService smsService, CompteRepository compteRepository) {
+    public UtilisateurService(UtilisateurRepository repo, SmsService smsService, CompteRepository compteRepository, TransactionRepository transactionRepository) {
         this.repo = repo;
         this.smsService = smsService;
         this.compteRepository = compteRepository;
+        this.transactionRepository = transactionRepository;
     }
 
-    public Utilisateur register(String nom, String prenom, String numeroTelephone, String codeVerification) {
+    public Utilisateur register(String nom, String prenom, String numeroTelephone, String codeSecret) {
         Optional<Utilisateur> existing = findByNumeroFlexible(numeroTelephone);
         if (existing.isPresent()) {
             throw new IllegalArgumentException("Le numéro est déjà utilisé");
@@ -46,31 +56,27 @@ public class UtilisateurService {
         u.setNom(nom);
         u.setPrenom(prenom);
         u.setNumeroTelephone(cleanNumber(numeroTelephone));
-        String code = (codeVerification != null && !codeVerification.isBlank()) ? codeVerification : generate4DigitCode();
-        u.setCodeVerification(code);
-        u.setVerified(false);
+        u.setCodeSecret(codeSecret);
+        u.setStatut("INACTIF");
+        String otp = String.format("%06d", new Random().nextInt(999999));
+        u.setOtp(otp);
+        u.setOtpExpiration(LocalDateTime.now().plusMinutes(5));
         repo.save(u);
-        smsService.sendSms(numeroTelephone, "Votre code de vérification : " + code);
+        String link = "http://localhost:8080/api/utilisateur/verify-otp?userId=" + u.getId() + "&otp=" + otp;
+        smsService.sendSms(u.getNumeroTelephone(), "Cliquez sur ce lien pour vérifier votre compte : " + link);
         return u;
     }
 
-    private String generate4DigitCode() {
-        Random r = new Random();
-        int n = 1000 + r.nextInt(9000);
-        return String.valueOf(n);
-    }
-
-    public String verify(String numeroTelephone, String code) {
-        Utilisateur u = findByNumeroFlexible(numeroTelephone).orElseThrow(() -> new NotFoundException("Utilisateur non trouvé"));
-        if (u.getCodeVerification() == null || !u.getCodeVerification().equals(code)) {
-            throw new IllegalArgumentException("Code invalide");
+    public String verifyOtp(UUID userId, String otp) {
+        Utilisateur u = repo.findById(userId).orElseThrow(() -> new NotFoundException("Utilisateur non trouvé"));
+        if (u.getOtp() == null || !u.getOtp().equals(otp) || LocalDateTime.now().isAfter(u.getOtpExpiration())) {
+            return "OTP invalide ou expiré.";
         }
-        // Marquer comme vérifié si ne l'est pas déjà
-        if (!u.isVerified()) {
-            u.setVerified(true);
-            repo.save(u);
-        }
-        // Create account if not exists (always check, regardless of verification status)
+        u.setStatut("ACTIF");
+        u.setOtp(null);
+        u.setOtpExpiration(null);
+        repo.save(u);
+        // Create account if not exists
         if (compteRepository.findByUtilisateurId(u.getId()).isEmpty()) {
             Compte c = new Compte();
             c.setUtilisateurId(u.getId());
@@ -80,18 +86,75 @@ public class UtilisateurService {
             c.setNumeroCompte("ACC-" + java.util.UUID.randomUUID().toString());
             compteRepository.save(c);
         }
+        return "Votre compte OMPay est désormais actif.";
+    }
 
+    public Map<String, String> login(String numeroTelephone, String code) {
+        Utilisateur u = findByNumeroFlexible(numeroTelephone).orElseThrow(() -> new NotFoundException("Utilisateur non trouvé"));
+        if (u.getCodeSecret() == null || !u.getCodeSecret().equals(code)) {
+            throw new IllegalArgumentException("Code invalide");
+        }
+        // Check if account is active
+        if (!"ACTIF".equals(u.getStatut())) {
+            throw new IllegalArgumentException("Compte non actif");
+        }
+
+        // Generate tokens
+        String accessToken = generateAccessToken(u.getId().toString());
+        String refreshToken = generateRefreshToken(u.getId().toString());
+
+        // Store refresh token
+        u.setRefreshToken(refreshToken);
+        repo.save(u);
+
+        return Map.of("accessToken", accessToken, "refreshToken", refreshToken);
+    }
+
+    private String generateAccessToken(String userId) {
         Key key = Keys.hmacShaKeyFor(jwtSecret.getBytes(StandardCharsets.UTF_8));
         Instant now = Instant.now();
-        String jwt = Jwts.builder()
-                .setSubject(u.getId().toString())
+        return Jwts.builder()
+                .setSubject(userId)
                 .claim("is_verified", true)
                 .setIssuedAt(java.util.Date.from(now))
-                .setExpiration(java.util.Date.from(now.plus(7, ChronoUnit.DAYS)))
+                .setExpiration(java.util.Date.from(now.plus(15, ChronoUnit.MINUTES))) // Short-lived access token
                 .signWith(key, SignatureAlgorithm.HS256)
                 .compact();
+    }
 
-        return jwt;
+    private String generateRefreshToken(String userId) {
+        Key key = Keys.hmacShaKeyFor(jwtSecret.getBytes(StandardCharsets.UTF_8));
+        Instant now = Instant.now();
+        return Jwts.builder()
+                .setSubject(userId)
+                .setIssuedAt(java.util.Date.from(now))
+                .setExpiration(java.util.Date.from(now.plus(7, ChronoUnit.DAYS))) // Long-lived refresh token
+                .signWith(key, SignatureAlgorithm.HS256)
+                .compact();
+    }
+
+    public String refreshToken(String refreshToken) {
+        try {
+            Key key = Keys.hmacShaKeyFor(jwtSecret.getBytes(StandardCharsets.UTF_8));
+            var claims = Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(refreshToken);
+            String userId = claims.getBody().getSubject();
+
+            Utilisateur u = repo.findById(UUID.fromString(userId)).orElseThrow(() -> new NotFoundException("Utilisateur non trouvé"));
+
+            // Verify the refresh token matches the stored one
+            if (!refreshToken.equals(u.getRefreshToken())) {
+                throw new IllegalArgumentException("Refresh token invalide");
+            }
+
+            // Check if account is still active
+            if (!"ACTIF".equals(u.getStatut())) {
+                throw new IllegalArgumentException("Compte non actif");
+            }
+
+            return generateAccessToken(userId);
+        } catch (Exception e) {
+            throw new IllegalArgumentException("Refresh token invalide");
+        }
     }
 
     /**
@@ -132,5 +195,61 @@ public class UtilisateurService {
             n = "+" + n.substring(2);
         }
         return n;
+    }
+
+    public Optional<Utilisateur> findById(UUID userId) {
+        return repo.findById(userId);
+    }
+
+    public Map<String, Object> getDashboard(UUID userId) throws WriterException, IOException {
+        Utilisateur u = repo.findById(userId).orElseThrow(() -> new NotFoundException("Utilisateur non trouvé"));
+        Compte compte = compteRepository.findByUtilisateurId(userId).stream().findFirst().orElse(null);
+
+        BigDecimal solde = compte != null ? compte.getSolde() : BigDecimal.ZERO;
+        String qrCode = compte != null ? QrUtil.toDataUrlPng(compte.getNumeroCompte(), 200) : null;
+
+        List<Transaction> allTransactions = transactionRepository.findByUtilisateurId(userId);
+        // Get last 5 transactions, sorted by date descending
+        List<Map<String, Object>> lastTransactions = allTransactions.stream()
+                .sorted((t1, t2) -> t2.getDateTransaction().compareTo(t1.getDateTransaction()))
+                .limit(5)
+                .map(t -> {
+                    String destinataire = null;
+                    String expediteur = u.getNom() + " " + u.getPrenom(); // Current user is sender
+
+                    // Extract recipient from description based on type
+                    if ("TRANSFERT".equals(t.getType()) || "PAIEMENT".equals(t.getType())) {
+                        // Description contains recipient info like "Transfert vers ACC-..." or "Paiement à ..."
+                        String desc = t.getDescription();
+                        if (desc != null) {
+                            if (desc.contains("vers ")) {
+                                destinataire = desc.substring(desc.indexOf("vers ") + 5);
+                            } else if (desc.contains("à ")) {
+                                destinataire = desc.substring(desc.indexOf("à ") + 2);
+                            }
+                        }
+                    }
+
+                    return Map.<String, Object>of(
+                            "montant", t.getMontant(),
+                            "description", t.getDescription(),
+                            "dateTransaction", t.getDateTransaction(),
+                            "type", t.getType(),
+                            "statut", t.getStatut(),
+                            "destinataire", destinataire,
+                            "expediteur", expediteur,
+                            "date", t.getDateTransaction(),
+                            "reference", t.getId()
+                    );
+                })
+                .toList();
+
+        return Map.of(
+                "nom", u.getNom(),
+                "prenom", u.getPrenom(),
+                "qrCode", qrCode,
+                "solde", solde,
+                "lastTransactions", lastTransactions
+        );
     }
 }

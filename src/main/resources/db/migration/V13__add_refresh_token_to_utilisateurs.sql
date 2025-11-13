@@ -1,0 +1,1 @@
+ALTER TABLE utilisateurs ADD COLUMN refresh_token VARCHAR(255);

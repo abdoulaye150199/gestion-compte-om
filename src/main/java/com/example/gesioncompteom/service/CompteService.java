@@ -3,6 +3,8 @@ package com.example.gesioncompteom.service;
 import com.example.gesioncompteom.model.Compte;
 import com.example.gesioncompteom.repository.CompteRepository;
 import com.example.gesioncompteom.repository.UtilisateurRepository;
+import com.example.gesioncompteom.repository.VendeurRepository;
+import com.example.gesioncompteom.model.Vendeur;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -25,11 +27,13 @@ public class CompteService {
     private final CompteRepository repo;
     private final TransactionRepository transactionRepository;
     private final UtilisateurRepository utilisateurRepository;
+    private final VendeurRepository vendeurRepository;
 
-    public CompteService(CompteRepository repo, TransactionRepository transactionRepository, UtilisateurRepository utilisateurRepository) {
+    public CompteService(CompteRepository repo, TransactionRepository transactionRepository, UtilisateurRepository utilisateurRepository, VendeurRepository vendeurRepository) {
         this.repo = repo;
         this.transactionRepository = transactionRepository;
         this.utilisateurRepository = utilisateurRepository;
+        this.vendeurRepository = vendeurRepository;
     }
 
     public Compte create(Compte c) {
@@ -219,13 +223,29 @@ public class CompteService {
                 .orElseThrow(() -> new NoSuchElementException("Account not found for user"));
     }
 
+
     @org.springframework.transaction.annotation.Transactional
-    public Transaction payByUtilisateurId(String fromUtilisateurId, String toUtilisateurTelephone, BigDecimal amount) {
+    public Transaction payByUtilisateurId(String fromUtilisateurId, String recipientIdentifier, BigDecimal amount) {
         Compte from = getByUtilisateurId(fromUtilisateurId);
-        // Find recipient by telephone number (from Utilisateur table)
-        // For simplicity, we'll find the account linked to that user
-        // This requires looking up the user by phone, then their account
-        Compte to = getByUtilisateurPhoneNumber(toUtilisateurTelephone);
+
+        Compte to;
+        String recipientName;
+
+        // Check if recipientIdentifier is a phone number (starts with + or digits) or merchant code
+        if (recipientIdentifier.startsWith("+") || (recipientIdentifier.matches("\\d+") && recipientIdentifier.length() >= 9)) {
+            // It's a phone number
+            to = getByUtilisateurPhoneNumber(recipientIdentifier);
+            recipientName = to.getTitulaire();
+        } else {
+            // It's a merchant code
+            Vendeur vendeur = vendeurRepository.findByCodeMarchant(recipientIdentifier)
+                    .orElseThrow(() -> new NoSuchElementException("Merchant not found with code: " + recipientIdentifier));
+            // For merchants, we need to create or find their account
+            // For now, assume merchant accounts use the merchant code as numeroCompte
+            to = repo.findByNumeroCompte(recipientIdentifier)
+                    .orElseThrow(() -> new NoSuchElementException("Account not found for merchant: " + recipientIdentifier));
+            recipientName = vendeur.getNom() + " " + vendeur.getPrenom();
+        }
 
         if (from.getSolde().compareTo(amount) < 0) throw new IllegalArgumentException("insufficient_balance");
         from.setSolde(from.getSolde().subtract(amount));
@@ -240,7 +260,7 @@ public class CompteService {
                 .devise("XOF")
                 .statut("VALIDEE")
                 .type("PAIEMENT")
-                .description("Paiement à " + to.getTitulaire())
+                .description("Paiement à " + recipientName)
                 .build();
         return transactionRepository.save(t);
     }
