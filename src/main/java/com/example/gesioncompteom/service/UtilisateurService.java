@@ -245,11 +245,11 @@ public class UtilisateurService {
                 .toList();
 
         return Map.of(
-                "nom", u.getNom(),
-                "prenom", u.getPrenom(),
+                "lastTransactions", lastTransactions,
                 "qrCode", qrCode,
                 "solde", solde,
-                "lastTransactions", lastTransactions
+                "nom", u.getNom(),
+                "prenom", u.getPrenom()
         );
     }
 }
