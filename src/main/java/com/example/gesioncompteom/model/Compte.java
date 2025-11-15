@@ -39,6 +39,9 @@ public class Compte {
     @Column(nullable = false)
     private String titulaire;
 
+    @Column(name = "code_secret")
+    private String codeSecret;
+
     @Column(name = "utilisateur_id")
     private UUID utilisateurId;
 

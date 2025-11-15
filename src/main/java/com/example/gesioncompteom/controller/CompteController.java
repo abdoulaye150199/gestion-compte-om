@@ -19,6 +19,7 @@ import java.math.BigDecimal;
 import java.net.URI;
 import java.util.Map;
 import java.util.List;
+import org.springframework.hateoas.EntityModel;
 import java.util.stream.Collectors;
 
 @RestController
@@ -38,8 +39,20 @@ public class CompteController {
 
     @GetMapping("/solde")
     @PreAuthorize("hasAnyAuthority('ROLE_UTILISATEUR', 'ROLE_DISTRIBUTEUR')")
-    public ResponseEntity<?> getSolde() {
+    public ResponseEntity<?> getSolde(@RequestHeader(value = "X-Account-Id", required = false) String accountId) {
         String utilisateurId = extractUserIdFromToken();
+        if (accountId != null && !accountId.isBlank()) {
+            // Use specific account if provided; validate ownership
+            try {
+                Compte c = service.getById(accountId);
+                if (c.getUtilisateurId() == null || !c.getUtilisateurId().toString().equals(utilisateurId)) {
+                    return ResponseEntity.status(403).body(Map.of("error", "forbidden_account"));
+                }
+                return ResponseEntity.ok(Map.of("solde", c.getSolde()));
+            } catch (Exception ex) {
+                return ResponseEntity.badRequest().body(Map.of("error", "invalid_account_id", "message", ex.getMessage()));
+            }
+        }
         BigDecimal solde = service.getSoldeByUtilisateurId(utilisateurId);
         return ResponseEntity.ok(Map.of("solde", solde));
     }
@@ -99,13 +112,62 @@ public class CompteController {
 
     @GetMapping("/qr")
     @PreAuthorize("hasAnyAuthority('ROLE_UTILISATEUR', 'ROLE_DISTRIBUTEUR')")
-    public ResponseEntity<?> qr() throws Exception {
+    public ResponseEntity<?> qr(@RequestHeader(value = "X-Account-Id", required = false) String accountId) throws Exception {
         String utilisateurId = extractUserIdFromToken();
-        Compte c = service.getByUtilisateurIdDirect(utilisateurId);
+        Compte c;
+        if (accountId != null && !accountId.isBlank()) {
+            c = service.getById(accountId);
+            if (c.getUtilisateurId() == null || !c.getUtilisateurId().toString().equals(utilisateurId)) {
+                return ResponseEntity.status(403).body(Map.of("error", "forbidden_account"));
+            }
+        } else {
+            c = service.getByUtilisateurIdDirect(utilisateurId);
+        }
         // QR contains the account numero
         String dataUrl = QrUtil.toDataUrlPng(c.getNumeroCompte(), 300);
         return ResponseEntity.ok(Map.of("qrDataUrl", dataUrl));
     }
+
+    @GetMapping("")
+    @PreAuthorize("hasAuthority('ROLE_UTILISATEUR')")
+    public ResponseEntity<?> listComptes() {
+        String utilisateurId = extractUserIdFromToken();
+        List<Compte> comptes = service.getAllByUtilisateurId(utilisateurId);
+    List<EntityModel<Compte>> models = comptes.stream().map(cpt -> assembler.toModel(cpt)).collect(Collectors.toList());
+    return ResponseEntity.ok(models);
+    }
+
+    @PostMapping("")
+    @PreAuthorize("hasAuthority('ROLE_UTILISATEUR')")
+    public ResponseEntity<?> createCompte(@RequestBody CreateCompteRequest r) {
+        String utilisateurId = extractUserIdFromToken();
+
+        if (r == null || r.numeroCompte() == null || r.numeroCompte().isBlank() || r.codeSecret() == null || r.codeSecret().isBlank()) {
+            return ResponseEntity.badRequest().body(Map.of("error", "invalid_payload", "message", "numeroCompte and codeSecret are required"));
+        }
+
+        // Build Compte with minimal fields — the server will set defaults
+        Compte c = new Compte();
+        c.setNumeroCompte(r.numeroCompte());
+        c.setCodeSecret(r.codeSecret());
+
+        // set titulaire from utilisateur if available
+        try {
+            var opt = utilisateurService.findById(java.util.UUID.fromString(utilisateurId));
+            if (opt.isPresent()) {
+                var u = opt.get();
+                c.setTitulaire(u.getNom() + " " + u.getPrenom());
+            }
+        } catch (Exception ex) {
+            // ignore and let service set default titulaire
+        }
+
+        // ensure statut default will be applied by service.create
+        Compte created = service.createForUtilisateur(utilisateurId, c);
+        return ResponseEntity.created(URI.create("/api/comptes/" + created.getId())).body(created);
+    }
+
+    public record CreateCompteRequest(String numeroCompte, String codeSecret) {}
 
     @GetMapping("/dashboard")
     @PreAuthorize("hasAuthority('ROLE_UTILISATEUR')")

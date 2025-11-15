@@ -126,6 +126,22 @@ public class CompteService {
 
     public List<Compte> listAll() { return repo.findAll(); }
 
+    /**
+     * Return all accounts belonging to a given utilisateur (UUID string).
+     */
+    public List<Compte> getAllByUtilisateurId(String utilisateurId) {
+        UUID uuid = UUID.fromString(utilisateurId);
+        return repo.findAllByUtilisateurId(uuid);
+    }
+
+    /**
+     * Create a new account for the given utilisateur (associates utilisateurId then saves).
+     */
+    public Compte createForUtilisateur(String utilisateurId, Compte c) {
+        c.setUtilisateurId(UUID.fromString(utilisateurId));
+        return create(c);
+    }
+
     public Compte credit(String id, BigDecimal amount) {
         Compte c = getById(id);
         c.setSolde(c.getSolde().add(amount));

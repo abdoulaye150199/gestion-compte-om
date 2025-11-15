@@ -4,6 +4,7 @@ import com.example.gesioncompteom.model.Compte;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -11,5 +12,6 @@ import java.util.UUID;
 public interface CompteRepository extends JpaRepository<Compte, UUID> {
     Optional<Compte> findByNumeroCompte(String numeroCompte);
     Optional<Compte> findByUtilisateurId(UUID utilisateurId);
+    List<Compte> findAllByUtilisateurId(UUID utilisateurId);
 }
 
