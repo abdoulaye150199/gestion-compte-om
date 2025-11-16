@@ -39,21 +39,11 @@ public class CompteController {
 
     @GetMapping("/solde")
     @PreAuthorize("hasAnyAuthority('ROLE_UTILISATEUR', 'ROLE_DISTRIBUTEUR')")
-    public ResponseEntity<?> getSolde(@RequestHeader(value = "X-Account-Id", required = false) String accountId) {
+    public ResponseEntity<?> getSolde() {
         String utilisateurId = extractUserIdFromToken();
-        if (accountId != null && !accountId.isBlank()) {
-            // Use specific account if provided; validate ownership
-            try {
-                Compte c = service.getById(accountId);
-                if (c.getUtilisateurId() == null || !c.getUtilisateurId().toString().equals(utilisateurId)) {
-                    return ResponseEntity.status(403).body(Map.of("error", "forbidden_account"));
-                }
-                return ResponseEntity.ok(Map.of("solde", c.getSolde()));
-            } catch (Exception ex) {
-                return ResponseEntity.badRequest().body(Map.of("error", "invalid_account_id", "message", ex.getMessage()));
-            }
-        }
-        BigDecimal solde = service.getSoldeByUtilisateurId(utilisateurId);
+        List<Compte> comptes = service.getAllByUtilisateurId(utilisateurId);
+        Compte compte = comptes.stream().findFirst().orElse(null);
+        BigDecimal solde = compte != null ? compte.getSolde() : BigDecimal.ZERO;
         return ResponseEntity.ok(Map.of("solde", solde));
     }
 
@@ -112,16 +102,12 @@ public class CompteController {
 
     @GetMapping("/qr")
     @PreAuthorize("hasAnyAuthority('ROLE_UTILISATEUR', 'ROLE_DISTRIBUTEUR')")
-    public ResponseEntity<?> qr(@RequestHeader(value = "X-Account-Id", required = false) String accountId) throws Exception {
+    public ResponseEntity<?> qr() throws Exception {
         String utilisateurId = extractUserIdFromToken();
-        Compte c;
-        if (accountId != null && !accountId.isBlank()) {
-            c = service.getById(accountId);
-            if (c.getUtilisateurId() == null || !c.getUtilisateurId().toString().equals(utilisateurId)) {
-                return ResponseEntity.status(403).body(Map.of("error", "forbidden_account"));
-            }
-        } else {
-            c = service.getByUtilisateurIdDirect(utilisateurId);
+        List<Compte> comptes = service.getAllByUtilisateurId(utilisateurId);
+        Compte c = comptes.stream().findFirst().orElse(null);
+        if (c == null) {
+            return ResponseEntity.notFound().build();
         }
         // QR contains the account numero
         String dataUrl = QrUtil.toDataUrlPng(c.getNumeroCompte(), 300);

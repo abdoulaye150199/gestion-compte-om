@@ -248,6 +248,7 @@ public class UtilisateurService {
         Map<String, Object> dashboard = new java.util.LinkedHashMap<>();
         dashboard.put("prenom", u.getPrenom());
         dashboard.put("nom", u.getNom());
+        dashboard.put("compteId", compte != null ? compte.getId() : null);
         dashboard.put("qrCode", qrCode);
         dashboard.put("solde", solde);
         dashboard.put("lastTransactions", lastTransactions);
