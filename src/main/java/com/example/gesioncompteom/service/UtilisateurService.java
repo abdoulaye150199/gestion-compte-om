@@ -203,7 +203,8 @@ public class UtilisateurService {
 
     public Map<String, Object> getDashboard(UUID userId) throws WriterException, IOException {
         Utilisateur u = repo.findById(userId).orElseThrow(() -> new NotFoundException("Utilisateur non trouvé"));
-        Compte compte = compteRepository.findByUtilisateurId(userId).stream().findFirst().orElse(null);
+        List<Compte> comptes = compteRepository.findAllByUtilisateurId(userId);
+        Compte compte = comptes.stream().findFirst().orElse(null);
 
         BigDecimal solde = compte != null ? compte.getSolde() : BigDecimal.ZERO;
         String qrCode = compte != null ? QrUtil.toDataUrlPng(compte.getNumeroCompte(), 200) : null;
