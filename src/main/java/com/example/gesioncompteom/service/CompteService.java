@@ -159,7 +159,7 @@ public class CompteService {
 
     private Compte getByUtilisateurId(String utilisateurId) {
         UUID uuid = UUID.fromString(utilisateurId);
-        return repo.findByUtilisateurId(uuid).orElseThrow(() -> new NoSuchElementException("Compte not found for user"));
+        return repo.findAllByUtilisateurId(uuid).stream().findFirst().orElseThrow(() -> new NoSuchElementException("Compte not found for user"));
     }
 
     public Compte getByUtilisateurIdDirect(String utilisateurId) {
@@ -235,7 +235,7 @@ public class CompteService {
         Utilisateur u = utilisateurRepository.findByNumeroTelephone(phoneNumber)
                 .orElseThrow(() -> new NoSuchElementException("User not found with phone: " + phoneNumber));
         // Get account for that user
-        return repo.findByUtilisateurId(u.getId())
+        return repo.findAllByUtilisateurId(u.getId()).stream().findFirst()
                 .orElseThrow(() -> new NoSuchElementException("Account not found for user"));
     }
 
