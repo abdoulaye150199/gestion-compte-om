@@ -2,7 +2,6 @@ package com.example.gesioncompteom.service;
 
 import com.example.gesioncompteom.model.Compte;
 import com.example.gesioncompteom.repository.CompteRepository;
-import com.example.gesioncompteom.repository.UtilisateurRepository;
 import com.example.gesioncompteom.repository.VendeurRepository;
 import com.example.gesioncompteom.model.Vendeur;
 import org.springframework.stereotype.Service;
@@ -26,14 +25,14 @@ public class CompteService {
 
     private final CompteRepository repo;
     private final TransactionRepository transactionRepository;
-    private final UtilisateurRepository utilisateurRepository;
     private final VendeurRepository vendeurRepository;
+    private final UtilisateurService utilisateurService;
 
-    public CompteService(CompteRepository repo, TransactionRepository transactionRepository, UtilisateurRepository utilisateurRepository, VendeurRepository vendeurRepository) {
+    public CompteService(CompteRepository repo, TransactionRepository transactionRepository, VendeurRepository vendeurRepository, UtilisateurService utilisateurService) {
         this.repo = repo;
         this.transactionRepository = transactionRepository;
-        this.utilisateurRepository = utilisateurRepository;
         this.vendeurRepository = vendeurRepository;
+        this.utilisateurService = utilisateurService;
     }
 
     public Compte create(Compte c) {
@@ -231,8 +230,8 @@ public class CompteService {
     }
 
     private Compte getByUtilisateurPhoneNumber(String phoneNumber) {
-        // Look up user by phone number
-        Utilisateur u = utilisateurRepository.findByNumeroTelephone(phoneNumber)
+        // Look up user by phone number using flexible matching (supports multiple formats like +221XXX, 0XXX, XXX, etc.)
+        Utilisateur u = utilisateurService.findByNumeroFlexible(phoneNumber)
                 .orElseThrow(() -> new NoSuchElementException("User not found with phone: " + phoneNumber));
         // Get account for that user
         return repo.findAllByUtilisateurId(u.getId()).stream().findFirst()
